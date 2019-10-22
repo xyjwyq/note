@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <my-inp></my-inp>
+        <hr>
+        <my-content></my-content>
+    </div>
+    <script>
+        Vue.prototype.bus = new Vue();
+
+        new Vue({
+            el: '#app',
+            components: {
+                myInp: {
+                    data() {
+                        return {
+                            inpVal: ''
+                        }
+                    },
+                    methods: {
+                        handleClick() {
+                            this.bus.$emit('test', this.inpVal);
+                        }
+                    },
+                    template: `
+                                <div>
+                                    <input type="text" v-model.lazy="inpVal">
+                                    <button @click="handleClick">提交</button>
+                                </div>
+                            `
+                },
+                myContent: {
+                    created() {
+                        this.bus.$on('test', (value)=> {
+                            console.log(value);
+                            this.content = value;
+                        });
+                    },
+                    data() {
+                        return {
+                            content: ''
+                        }
+                    },
+                    template: `<div>{{ content }}</div>`
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

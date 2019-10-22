@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <!-- 单向数据流 -->
+        <!-- <my-cmp :value="count" :obj="obj"></my-cmp>
+        <my-cmp :value="count" :obj="obj"></my-cmp> -->
+
+        <!-- 双向通信 -->
+        <div>当前：{{ count }}</div>
+        <hr>
+        <!-- <my-cmp :value="count" @input="handleInput"></my-cmp> -->
+        <!-- <my-cmp v-model="count"></my-cmp> -->
+        <!-- <my-cmp :value="count" @update:value="handleInput"></my-cmp> -->
+        <my-cmp :value.sync="count"></my-cmp>
+    </div>
+    <script>
+        // 双向数据绑定
+        Vue.component('myCmp', {
+            props: ['value'],
+            template: `<div>{{ value }}</div>`,
+            created() {
+                const that = this;
+                setInterval(function () {
+                    that.$emit('update:value', that.value + 1);
+                }, 1000);
+            },
+            // created() {
+            //     const that = this;
+            //     setInterval(function () {
+            //         that.$emit('input', that.value + 1);
+            //     }, 1000);
+            // },
+        });
+
+        new Vue({
+            el: '#app',
+            data: {
+                count: 100
+            },
+            methods: {
+                    // handleInput(val) {
+                    //     this.count = val;
+                    // }
+            },
+        });
+
+
+        // 单项数据流更改父组件传递的值
+        // Vue.component('myCmp', {
+        //     props: ['value', "obj"],
+        //     data() {
+        //         return {
+        //             myObj: JSON.parse(JSON.stringify(this.obj))
+        //         }
+        //     },
+        //     template: `<div><div>{{ myObj.a }}</div><button @click="handleClick">点击</button></div>`,
+        //     methods: {
+        //         handleClick() {
+        //             this.myObj.a = 100;
+        //         }
+        //     }
+        // });
+
+
+
+        // 单项数据流
+        // Vue.component('myCmp', {
+        //     props: ['value',"obj"],
+        //     template: `<div><div>{{ obj.a }}</div><button @click="handleClick">点击</button></div>`,
+        //     methods: {
+        //         handleClick() {
+        //             this.obj.a = 100;
+        //         }
+        //     },
+        //     // created() {
+        //     //     const that = this;
+        //     //     setInterval(function () {
+        //     //         that.value++;
+        //     //     }, 1000);
+        //     // },
+        // });
+
+        // new Vue({
+        //     el: '#app',
+        //     data: {
+        //         count: 100,
+        //         obj: {
+        //             a: 1
+        //         }
+        //     },
+        // });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>创建一个vue实例</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        {{ 'a' }}
+        {{ 1 }}
+        {{ true }}
+        {{ [1, 2, 3, 4] }}
+        {{ {a: 1, b: 2} }}
+        {{ 1 * 4 }}
+
+        <!-- {{ var a = 10; return a; }} -->
+        <!-- {{ if(true) { return 'a'; } }} -->
+        {{ !true ? 'a' : 'b'  }}
+
+        {{ name }}
+        {{ desc }}
+
+        <!-- {{ a }} -->
+
+    </div>
+    <script>
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                name: 'xiexie',
+                desc: 'weiwei',
+                obj: {
+                    a: 'a',
+                    b: 1
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

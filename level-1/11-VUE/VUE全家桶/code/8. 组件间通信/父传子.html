@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>父传子</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <!-- 属性传值 -->
+        <!-- <my-content :title="title" :content="content"></my-content> -->
+
+        <!-- vm.$parent 与vm.$children -->
+        <my-content></my-content>
+    </div>
+    <script>
+        // provide 与 inject
+        // const vm = new Vue({
+        //     el: '#app',
+        //     provide: {
+        //         title: '标题标题标题标题标题标题标题',
+        //         content: '内容内容内容内容内容内容内容内容内容'
+        //     },
+        //     data: {
+
+        //     },
+        //     components: {
+        //         myContent: {
+        //             // created() {
+        //             //     console.log(this.$parent);
+        //             //     this.title = this.$parent.title;
+        //             // },
+        //             // props: ['title'],
+        //             inject: ['title'],
+        //             template: `
+        //                 <div>
+        //                     <h3>{{ title }}</h3>
+        //                     <my-p></my-p>
+        //                 </div>
+        //             `,
+        //             components: {
+        //                 myP: {
+        //                     // props: ['content'],
+        //                     // created() {
+        //                     //     this.content = this.$parent.$parent.content;
+        //                     // },
+        //                     inject: ['content'],
+        //                     template: `
+        //                         <p>{{ content }}</p>
+        //                     `
+        //                 }
+        //             }
+        //         }
+        //     }
+        // });
+
+        // vm.$parent与vm.$children
+        const vm = new Vue({
+            el: '#app',
+            data: {
+                title: '标题标题标题标题标题标题标题',
+                content: '内容内容内容内容内容内容内容内容内容'
+            },
+
+            components: {
+                myContent: {
+                    created() {
+                        console.log(this.$parent);
+                        this.title = this.$parent.title;
+                    },
+                    mounted() {
+                        console.log(this.$children);
+                    },
+                    // props: ['title'],
+                    template: `
+                        <div>
+                            <h3>{{ title }}</h3>
+                            <my-p></my-p>
+                        </div>
+                    `,
+                    components: {
+                        myP: {
+                            // props: ['content'],
+                            created() {
+                                this.content = this.$parent.$parent.content;
+                            },
+                            template: `
+                                <p>{{ content }}</p>
+                            `
+                        }
+                    }
+                }
+            }
+        });
+
+
+        // vm.attrs配合inheritAttrs: false
+        // const vm = new Vue({
+        //     el: '#app',
+        //     data: {
+        //         title: '标题标题标题标题标题标题标题',
+        //         content: '内容内容内容内容内容内容内容内容内容'
+        //     },
+
+        //     components: {
+        //         myContent: {
+        //             created() {
+        //                 console.log(this.$attrs);
+        //             },
+        //             props: ['title'],
+        //             inheritAttrs: false, // 使元素上不显示父组件传来但未注册的属性（特性除外）
+        //             // template: `
+        //             //     <div>
+        //             //         <h3>{{ title }}</h3>
+        //             //         <my-p :content="$attrs.content"></my-p>
+        //             //     </div>
+        //             // `,
+        //             template: `
+        //                 <div>
+        //                     <h3>{{ title }}</h3>
+        //                     <my-p v-bind="$attrs"></my-p>
+        //                 </div>
+        //             `,
+        //             components: {
+        //                 myP: {
+        //                     props: ['content'],
+        //                     template: `
+        //                         <p>{{ content }}</p>
+        //                     `
+        //                 }
+        //             }
+        //         }
+        //     }
+        // });
+
+        // 属性传值
+        // const vm = new Vue({
+        //     el: '#app',
+        //     data: {
+        //         title: '标题标题标题标题标题标题标题',
+        //         content: '内容内容内容内容内容内容内容内容内容'
+        //     },
+        //     components: {
+        //         myContent: {
+        //             props: ['title', 'content'],
+        //             template: `
+        //                 <div>
+        //                     <h3>{{ title }}</h3>
+        //                     <my-p :content="content"></my-p>
+        //                 </div>
+        //             `,
+        //             components: {
+        //                 myP: {
+        //                     props: ['content'],
+        //                     template: `
+        //                         <p>{{ content }}</p>
+        //                     `
+        //                 }
+        //             }
+        //         }
+        //     }
+        // });
+    </script>
+</body>
+
+</html>

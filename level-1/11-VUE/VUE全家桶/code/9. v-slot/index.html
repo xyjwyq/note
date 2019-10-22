@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+    <div id="app">
+        <slot-test>
+            <template v-slot:header>
+                <div>
+                    header
+                </div>
+            </template>
+            <template v-slot:default="slotProp">
+                <div>
+                    {{ slotProp.user.name }}
+                    {{ content }}
+                </div>
+            </template>
+            <template #footer>
+                <p>footer</p>
+            </template>
+        </slot-test>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                content: 'slot content'
+            },
+            components: {
+                slotTest: {
+                    data() {
+                        return {
+                            user: {
+                                name: 'test',
+                                age: 18,
+                                gender: 'male'
+                            }
+                        }
+                    },
+                    template: `<div>
+                                    <slot name="header"></slot>
+                                    <slot :user="user">{{ user.gender }}</slot>
+                                    <slot name="footer"></slot>
+                               </div>`
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
