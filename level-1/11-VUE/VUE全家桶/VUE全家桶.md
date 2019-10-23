@@ -1028,15 +1028,341 @@ const vm = new Vue({
 
 ## 路由
 
+- 在不同的路径下，展示不同的内容
+- 页面级的组件，都放在views文件夹下，其他的放在componnets文件中
+  - 页面级组件，是指路由路径对应渲染的组件
+
+```javascript
+// router.js
+import Vue from 'vue'
+import VueRouter from 'vue-router'
+import Home from '../views/Home.vue'
+
+Vue.use(VueRouter) // 在vue挂载router，此时会在vue实例上添加$router，$toute两个对象
+				 // $router --> 路由的相关方法
+				 // $route --> 路由的相关状态
+
+const routes = [
+  {
+    path: '/',
+    name: 'home',
+    component: Home
+  },
+  {
+    path: '/about',
+    name: 'about',
+    // route level code-splitting
+    // this generates a separate chunk (about.[hash].js) for this route
+    // which is lazy-loaded when the route is visited.
+    // 路由懒加载
+    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+  }
+]
+
+const router = new VueRouter({
+  routes,
+  mode: 'history' // 有hash与history两种模式，一般使用history
+})
+
+export default router
+
+```
+
+```javascript
+// main.js
+import Vue from 'vue'
+import App from './App.vue'
+import router from './router'
+
+Vue.config.productionTip = false
+
+new Vue({
+  router,
+  render: h => h(App)
+}).$mount('#app')
+
+```
+
+```html
+<!--App.vue-->
+<!-- router-link标签用来配置路由切换，一定要有to属性，要不然不显示 -->
+<!-- router-view标签用于显示路由路径对应的内容，没有这个标枪，没法显示路由路径的内容 -->
+<template>
+  <div id="app">
+    <div id="nav">
+      <router-link to="/">Home</router-link> |
+      <router-link to="/about">About</router-link>
+    </div>
+    <router-view/>
+  </div>
+</template>
+
+<style>
+#app {
+  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  color: #2c3e50;
+}
+
+#nav {
+  padding: 30px;
+}
+
+#nav a {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+#nav a.router-link-exact-active {
+  color: #42b983;
+}
+</style>
+
+```
+
 ### 路由配置
+
+```javascript
+
+// router-view标签中，to的赋值方式
+	// to="/" --> 直接赋值路径
+	// :to="{path:'/'}"
+	// :to="{name:'home'}"
+
+// .router-link-exact-active --> 点击哪个路由按钮，就会自动在该按钮上添加这个类，即按钮上的to属性的								  与导航栏中显示的路径完全匹配时
+// .router-link-active --> 当路由按钮to属性包含当前显示的路径，均会加上该类
+						 // /learn/aa --> /、/learn、/learn/aaa
+
+// 配置类名
+const router = new VueRouter({
+  routes,
+  mode: 'history' // 有hash与history两种模式，一般使用history
+  linkExactActiveClass: 'active-exact',
+  linkActiveClass: 'active
+})
+```
 
 ### 嵌套路由
 
+- 若children中的子组件路径，没有/,则会将父路径自动拼接，若有/,则直接使用该路径
+- `redirect`属性：重定向，值可以是字符串路径，也可以是函数
+- 路由跳转方法：push/replace/go
+
+```javascript
+const routes = [
+  // 方式1
+  // {
+  //   path: '/',
+  //   redirect: '/home'
+  // },
+  {
+    path: '/home',
+    name: 'home',
+    component: Home
+  },
+  {
+    path: '/learn',
+    name: 'learn',
+    component: () => import('../views/Learn.vue')
+  },
+  {
+    path: '/student',
+    name: 'student',
+    component: () => import('../views/Student.vue')
+  },
+  {
+    path: '/about',
+    name: 'about',
+    component: () => import('../views/About.vue')
+  },
+  {
+    path: '/community',
+    name: 'community',
+    component: () => import('../views/Community.vue'),
+    redirect: '/community/academic',
+    children: [{
+        path: 'academic',
+        name: 'academic',
+        component: () => import('../views/Academic.vue')
+      },
+      {
+        path: 'download',
+        name: 'download',
+        component: () => import('../views/Download.vue')
+      },
+      {
+        path: 'personal',
+        name: 'personal',
+        component: () => import('../views/Personal.vue')
+      }
+    ]
+  },
+  {
+    path: '/error',
+    name: 'error',
+    component: () => import('../views/Error.vue')
+  },
+  {
+    path: '*', // 当上面的额路径均不匹配时，则进入该配置
+    redirect(to) {
+      if (to.path === '/') {
+        return '/home';
+      } else {
+        return '/error'
+      }
+    }
+  }
+];
+
+
+ // [a, b, c, d] --> [a, b, c, d, e]
+ // this.$router.push('/home');
+
+ // [a, b, c, d] --> [a, b, c, e]
+// this.$router.replace({name:'home'});
+
+ // [a, b, c, d] -1 ==> d -> c , 0 ==> d -> d, 2 ==> b -> d
+ // this.$router.go(0);
+```
+
 ### 动态路由
+
+```html
+<!-- 若使用动态路由的方式跳转，则不应使用path的方式进行跳转，这样不起作用，需使用name的方式 -->
+<router-link :to="{name: 'question', params: { paramsName: 'value' }}"></router-link>
+
+<!-- query -->
+<router-link :to="{name: 'question', query: { paramsName: 'value' }}"></router-link>
+```
+
+```javascript
+// router.js
+
+// params
+const routes = [
+    {
+        path: '/question/:paramsName', // paramsName前面加上:, 代表paramsName为动态
+        name: 'question',
+        component: () => import('../views/Question.vue');
+    }
+];
+
+// query
+const routes = [
+    {
+        path: '/question',
+        name: 'question',
+        component: () => import('../views/Question.vue');
+    }
+];
+```
+
+```hmtl
+// Question.vue
+
+// params
+<script>
+export default {
+	mounted() {
+		const params = this.$router.params
+	}
+}
+</script>
+
+// query
+<script>
+export default {
+	mounted() {
+		const params = this.$router.query;
+	}
+}
+</script>
+```
 
 ### 导航守卫
 
-### 路由元信息
+1. 组件内守卫
+
+   - `beforeRouteLeave(to, from, next)`：当组件所在路径将要被改变时触发
+   - `beforeRouteEnter(to ,from, next)`：在路由进入组件之前触发
+     - 该函数中，`this`为undefined，若要使用vue实例中的参数：`next(vm => {})`
+   - `beforeRouteUpdate(to, from, next)`：当进行组件被路径跳转时，组件进行复用，生命周期函数不会再次自执行，但当组件复用时，路径跳转时候，会触发该函数
+
+2. 路由独享守卫
+
+   - `beforeEnter(to, from, next)`
+
+3. 全局守卫
+
+   - `router.beforeEach((to, from, next) => {})`
+   - `router.beforeResolve((to, from, next) => {)`
+   - `router.afterEach((to, from) => {})`
+
+   ```javascript
+   // main.js
+   import router from './router'
+   
+   router.beforeEach((to, from ,next) =>{})
+   ```
+
+4. 执行顺序：beforeEach -> beforeEnter -> beforeRouteEnter -> beforeResolve -> afterEach
+
+5. 完整的导航解析流程
+
+   1. 导航被触发。
+   2. 在失活的组件里调用离开守卫。
+   3. 调用全局的 `beforeEach` 守卫。
+   4. 在重用的组件里调用 `beforeRouteUpdate` 守卫 (2.2+)。
+   5. 在路由配置里调用 `beforeEnter`。
+   6. 解析异步路由组件。
+   7. 在被激活的组件里调用 `beforeRouteEnter`。
+   8. 调用全局的 `beforeResolve` 守卫 (2.5+)。
+   9. 导航被确认。
+   10. 调用全局的 `afterEach` 钩子。
+   11. 触发 DOM 更新。
+   12. 用创建好的实例调用 `beforeRouteEnter` 守卫中传给 `next` 的回调函数。
+
+### 路由元信息 
+
+ 定义路由的时候可以配置 `meta` 字段： 
+
+```javascript
+const router = new VueRouter({
+  routes: [
+    {
+      path: '/foo',
+      component: Foo,
+      children: [
+        {
+          path: 'bar',
+          component: Bar,
+          // a meta field
+          meta: { requiresAuth: true }
+        }
+      ]
+    }
+  ]
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    if (!auth.loggedIn()) {
+      next({
+        path: '/login',
+        query: { redirect: to.fullPath }
+      })
+    } else {
+      next()
+    }
+  } else {
+    next() // 确保一定要调用 next()
+  }
+})
+```
 
 
 
