@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Hello World</title>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <!-- React的核心库，与宿主环境无关 -->
+    <script src="https://unpkg.com/react@16/umd/react.development.js" crossorigin></script>
+    <!-- 依赖核心库，将核心的功能与页面结合 -->
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js" crossorigin></script>
+    <!-- 编译JSX -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <!-- <script>
+        // ReactDOM.render('Hello world', document.getElementById('root'));
+
+        var span = React.createElement('span',{}, '一个span元素');
+        var h1 = React.createElement('h1', {
+            title: '第一个React元素'
+        }, 'Hello', 'World', span);
+        ReactDOM.render(h1, document.getElementById('root'));
+    </script> -->
+
+    <script type="text/babel">
+        var h1 = <h1 title="第一个jsx语法">Hello World <span>一个span元素</span></h1>
+        ReactDOM.render(h1, document.getElementById('root'));
+    </script>
+
+</body>
+
+</html>
