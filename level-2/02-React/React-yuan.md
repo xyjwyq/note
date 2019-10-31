@@ -34,10 +34,10 @@
    |    性能    | √ | √ |
    |     易上手   | √ |      |
    |   灵活度     |      | √ |
-| 大型企业 | | √ |
+   | 大型企业 | | √ |
    | 中/小型企业 | √ |  |
-   | 生态 |  | √ |
-   
+   | 生态 | | √ |
+
 4. 学习路径
 
    整体原则：熟悉API --> 深入理解原理
@@ -111,7 +111,7 @@
    - 官方：create-react-app
    - 第三方：next.js、umi.js
 2. 凡是使用JSX的文件，必须导入React
-3. React项目支持`.js, .jsx`文件
+3. React项目支持`.js, .jsx`文件
 
 ```javascript
 yarn create react-app project-name
@@ -138,7 +138,255 @@ yarn create react-app project-name
 
 ## 核心概念
 
+### JSX语法
 
+1. 什么是JSX语法？
+
+   - FaceBook起草的JS扩展语法
+
+   - 本质是一个JS对象，会被babel编译，最终会转换成createElement
+
+   - 每个JSX表达式，**有且仅有一个根节点**，若想创建一个不影响页面结构的额根节点，使用`React.Fragment`
+
+     ```javascript
+     const h1 = (
+     	<>
+         	<h1>Hello World <span>span元素</span></h1>
+         	<p>p元素</p>
+         </>
+     );
+     // 等同于
+     const h1 = (
+     	<React.Fragment>
+         	<h1>Hello World <span>span元素</span></h1>
+         	<p>p元素</p>
+         </React.Fragment>
+     );
+     ```
+
+   - 每个JSX元素必须结束（XML规范）
+
+2. 在JSX中嵌入表达式
+
+   - 在JSX使用注释`{/* 注释 */}`
+- 将表达式作为内容的一部分
+   
+  - `null、undefined、false`不显示
+     - 普通对象，不可以作为子元素
+     - 可以放置React元素对象
+     - 表达式中的值为数组时，会将数组的每一项进行遍历并渲染，需要添加key属性
+   - 将表达式作为元素属性
+   - 属性使用**小驼峰命名法**
+   - 防止注入攻击
+     - 自动编码
+     - dangerouslySetInnerHTML
+   
+3. 元素的不可变性
+
+   - 虽然JSX元素是一个对象，但是该对象中的环节的所有属性不可更改
+   - 如果确实需要更改元素的属性，需要重新创建JSX元素
+
+```javascript
+     
+	// 将表达式作为内容的一部分
+	 const a = 111;
+     const b = 2222;
+     const obj1 = {
+         a: 1,
+         b: 2
+     };
+     const obj2 = (<span>span元素</span>);
+                   
+     const numbers = (new Array(30)).fill(0).map((item, i) => {
+         return (<li key={i}>{i}</li>)
+     })
+                   
+     
+     const div = (
+     	<div>
+         	{ a } * { b } = { a*b }
+         </div>
+     	<p>
+         	{ /* 普通对象无法放置 */ }
+         	{ obj1 } // 出错
+         </p>
+     	<p>
+         	{ obj2 } // 渲染
+         </p>
+		<ul>
+         	{ numbers }    
+         </ul>
+     );
+     
+     // 等价于即内部会编译成
+     React.createElement('div', {}, `${a} * ${b} = ${ a * b }`)
+
+// 将表达式作为元素属性
+const url = '....';
+const cls = 'image';
+
+cosnt div = (
+	<div>
+    	<img alt="" src={ url } className={ cls } style={ {width:"100px",height:"200px" } } />
+    </div>
+);
+
+// 防止注入攻击
+const content = '<h1>sdfdsfds</h1><p>dsfdsgfhgh</p>';
+const div = (
+	<div>
+    	{/* content中的标签元素会被自动编码 */}
+    	{content}
+    </div>
+);
+
+const div = (
+	<div dangerouslySetHTML={{
+    	__html: content
+    }}>
+    </div>
+);
+
+// 元素的不可变性
+let num = 1;
+const div = (
+	<div title="标题">{ num }</div>	
+);
+
+console.log(div.props.children); // 1
+
+div.props.children = 2; // 报错
+div.props.title = '测试'; // 报错
+
+ReactDOM.render(div, document.getElementById('root'));
+
+// 若是需要改变，则粗腰重新徐然
+num = 2;
+div = (
+	<div title="标题">{ num }</div>	
+);
+ReactDOM.render(div, document.getElementById('root'));
+```
+
+### 组件和组件属性
+
+**组件**：包含内容、样式和功能的UI单元
+
+1. 创建组件
+
+   **特别书注意：组件的名称首字母必须大写**
+
+   1. 函数组件
+
+      ```javascript
+      function MyFuncComp() {
+          return (<h1>组件内容</h1>)
+      }
+      
+      // 使用组件
+      ReactDOM.render((
+      	<div>
+          	{ /* 方式1：使用函数调用的方式使用，不推荐，因为呈现不出组件结构 */ }
+          	{ MyFuncComp() }
+               { /* 方式2，推荐使用 */ }
+      		<MyFuncComp />
+          </div>
+      ) ,document.getElementById('root'));
+      ```
+
+   2. 类组件
+
+      - 必须继承`React.Component`
+      - 必须提供`render`函数，用于渲染组件
+
+      ```javascript
+      // MyClassComp.js
+      import React from 'react';
+      
+      export default class MyClassComp extends React.Component {
+          
+          // 该方法必须返回React元素
+          render() {
+              return (<h1>类组件内容</H1>)
+          }
+      }
+      
+      // index.js
+      import MyClassComp from './MyClassComp.js'
+      
+      ReactDOM.render((
+      	<div>
+          	<MyClassComp />
+          </div>
+      ), document.getElementById('root'));
+      ```
+
+2. 组件的属性
+
+   **注意：组件的属性应该使用小驼峰命名法**
+
+   - 对于**函数组件**，属性会作为一个对象的属性，传递给函数的参数
+   - 对于**类组件**，属性会作为一个对象的属性，传递给构造函数的参数
+
+   **组件无法改变自身的属性**
+
+3. React中的哲学：数据属于谁，谁才有改动的权利（单向数据流）
+
+   **React中的数据，是自顶向下流动**
+
+### 组件状态
+
+**组件状态**：组件可以自行维护的数据
+
+1. 组件状态**仅在类组件中有效**
+
+2. 状态(state)，本质上，是类组件的一个属性，是一个对象
+
+3. 状态初始化
+
+   - 在构造函数中初始化
+
+     ```javascript
+     constructor(props) {
+         super(props);
+         // 初始化状态
+         this.state = {
+             left: this.props.number
+         };
+         this.timer = setInterval(() => {
+             // 会将状态进行混合
+             this.setState({
+                 left: this.state.left - 1
+             });// 重新设置状态，触发自动重新渲染
+             if (this.state.left === 0) {
+                 clearInterval(this.timer);
+             }
+         }, 1000);
+     }
+     ```
+
+   - 使用类属性进行初始化
+
+     ```javascript
+     export default class Tick extends React.Component {
+         // 初始化状态，JS Next 语法，目前处于试验阶段
+         // 该属性创建会在构造函数结束之后
+         state={
+             left: this.props.number
+         }
+     }
+     ```
+
+4. React中不能直接改变状态：因为React无法监控到状态发生了变化
+
+   状态的变化，必须使用`this.setState({})`来改变
+
+   一旦调用`this.setState`，组件就会重新渲染
+
+5. 组件中的数据
+
+   - props：该数据是由组件的使用者传递的数据，所有权不属于组件本身，因此组件无法改变该数据
+   - state：该数据是由组件自身创建的，所有权属于组件自身，因此组件有权改变该数据
 
 
 
