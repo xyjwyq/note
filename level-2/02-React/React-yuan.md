@@ -170,7 +170,7 @@ yarn create react-app project-name
 
    - 在JSX使用注释`{/* 注释 */}`
 - 将表达式作为内容的一部分
-   
+  
   - `null、undefined、false`不显示
      - 普通对象，不可以作为子元素
      - 可以放置React元素对象
@@ -180,10 +180,10 @@ yarn create react-app project-name
    - 防止注入攻击
      - 自动编码
      - dangerouslySetInnerHTML
-   
+  
 3. 元素的不可变性
 
-   - 虽然JSX元素是一个对象，但是该对象中的环节的所有属性不可更改
+   - 虽然JSX元素是一个对象，但是该对象中的所有属性不可更改
    - 如果确实需要更改元素的属性，需要重新创建JSX元素
 
 ```javascript
@@ -383,10 +383,63 @@ ReactDOM.render(div, document.getElementById('root'));
 
    一旦调用`this.setState`，组件就会重新渲染
 
+   ***猜想***：`this.setState`方法，改变状态是同步进行的，重新渲染组件是异步进行的
+
 5. 组件中的数据
 
    - props：该数据是由组件的使用者传递的数据，所有权不属于组件本身，因此组件无法改变该数据
    - state：该数据是由组件自身创建的，所有权属于组件自身，因此组件有权改变该数据
+
+### 事件
+
+在React中，组件的事件，本质上就是一个属性
+
+按照之前Ract组件的约定，由于事件的本质是一个属性，因此也需要使用小驼峰命名法
+
+**如果没有特殊处理，在事件处理函数中，this指向undefined**
+
+- 使用bind函数，绑定this
+- 使用箭头函数
+
+```javascript
+function handleClick(e) {
+    console.log('click');
+    console.log(e);
+}
+
+// 内置html组件的事件与原生dom一一对应，只是命名方式变为了小驼峰命名法
+// 在React中事件的本质就是一个属性并赋值为函数，然后在合适的时候，调用该函数，实现回调
+	// 只是在React内置组件中做了相应的回调处理，而自定义组件中需要自己定义回调的时机
+cosnt btn = (
+	<button onClick={this.handleClick}></button>
+	<button onClick={ (e) => {  console.log(e); } }></button>
+);
+
+
+// 处理事件中的this问题
+
+// 1. bind函数
+constructor(props) {
+    // 将原型上的事件处理函数绑定好this赋值到对象上
+    super(props);
+    this.handleClick = this.handleClick.bind(this);
+    this.handleOver = this.handleOver.bind(this);
+}
+
+cosnt btn = (
+    // 这种处理方式，效率较低，因为每次重新渲染都要生成一个新的函数
+	<button onClick={this.handleClick.bind(this)}></button>
+);
+
+// 2、箭头函数
+handleClick = () => {
+    // 根据es6语法，handleClick会成为对象的一个属性，而箭头函数的指向为外层非箭头函数的this指向
+    console.log(this);
+}
+
+```
+
+
 
 
 
