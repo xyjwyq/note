@@ -439,7 +439,133 @@ handleClick = () => {
 
 ```
 
+### 深入认识setState
 
+1. setState，它对状态的改变，**可能**是异步的
+   - 如果改变状态的代码处于某个HTML元素的事件中，则其实异步的，否则，是同步的
+2. 如果遇到某个事件中，需要同步调用setState多次，需要使用函数的方式得到最新状态
+3. 最佳实践
+   1. 把所有的setState当做异步处理
+   2. 永远不要信任setState调用之后的状态
+   3. 如果要使用改变之后的状态，需要使用回调函数( setState的第二个参数 )
+   4. 如果新的状态要根据之前的状态进行运算，使用函数的方式改变状态 ( setState的第一个参数 )
+4. React会对**异步的setState**进行优化：将多次setState进行合并（将多次状态改变完成后，再统一对stete进行改变，然后触发render）
+
+```javascript
+import React, { Component } from 'react'
+
+export default class Comp extends Component {
+
+    state = {
+        n: 0
+    }
+
+	// 情景1
+    handleClick = () => {
+        this.setState({
+            n: this.state.n + 1
+        }, () => {
+            //状态完成改变之后触发，该回调运行在render之后
+            console.log(this.state.n);
+        });
+    }
+    
+    // 情景2
+    handleClick = () => {
+        this.setState(cur => {
+            //参数cur表示当前的状态
+            //该函数的返回结果，会混合（覆盖）掉之前的状态
+            //该函数是异步执行
+            return {
+                n: cur.n + 1
+            }
+        }, ()=>{
+            //所有状态全部更新完成，并且重新渲染后执行
+            console.log("state更新完成", this.state.n);
+        });
+
+        this.setState(cur => ({
+            n: cur.n + 1
+        }));
+
+        this.setState(cur => ({
+            n: cur.n + 1
+        }));
+    }
+    
+    // 情景3
+    // constructor(props) {
+    //     super(props);
+    //     setInterval(() => {
+    	   // 此处，非事件处理函数中，setState同步执行
+    //         this.setState({
+    //             n: this.state.n + 1
+    //         });
+
+    //         this.setState({
+    //             n: this.state.n + 1
+    //         });
+    //         this.setState({
+    //             n: this.state.n + 1
+    //         });
+    //     }, 1000)
+    // }
+
+    render() {
+        console.log("render");
+        return (
+            <div>
+                <h1>
+                    {this.state.n}
+                </h1>
+                <p>
+                    <button onClick={this.handleClick}>+</button>
+                </p>
+            </div>
+        )
+    }
+}
+```
+
+### 生命周期
+
+**生命周期**：组件从诞生到销毁会经历一系列的过程，该过程就叫做生命周期。React在组件的生命周期中提供了一系列的钩子函数（类似于事件），可以让开发者在函数中注入代码，这些代码会在适当的时候运行
+
+**生命周期仅存在于类组件中，函数组件每次调用都是重新运行函数，旧的组件即刻销毁**
+
+#### 旧版生命周期
+
+指的是：React版本 < 16.0.0
+
+<img src="React-yuan.assets/image-20191104180104762.png" alt="image-20191104180104762" style="zoom:80%;" />
+
+1. constructor
+   - 同一个组件对象只会创建一次
+   - 不能在第一次**挂载到页面之前**，调用setState，为了避免问题，构造函数中严禁使用setState
+2. componentWillMount：
+   - 和构造函数一样，它只会运行一次
+   - 可以使用setState，但是为了避免bug，不允许使用，因为在某些特殊情况下，该函数可能会调用多次
+3. **render**
+   - 返回一个虚拟DOM，会被挂载到虚拟DOM树中，最终渲染到页面的真实DOM中
+   - render可能不止运行一次，只要需要重新渲染，就会运行
+   - 严禁使用setState，因为可能会导致无限递归渲染
+4. **componentDidMount**
+   - 只会执行一次
+   - 可以使用setState
+   - 通常情况下，会将网络请求、启动计时器等一开始需要的操作，书写到该函数中
+5. componentWillReceiveProps
+   - 即将接收新的属性值，指属性被重新赋值
+   - 参数为新的属性对象
+   - 该函数可能会产生一些bug，**不推荐使用**
+6. **shouldComponnetUpdate**
+   - 指示React是否要重新渲染该组件，通过返回true和false来指定
+   - 默认情况下，返回true
+7. componentWillUpdate
+   - 组件即将被重新渲染
+8.  componentDidUpdate 
+   -  往在该函数中使用dom操作，改变元素
+9. **componentWillUnmount** 
+   -  通常在该函数中销毁一些组件依赖的资源，比如计时器 
 
 
 
