@@ -537,12 +537,12 @@ export default class Comp extends Component {
 
 指的是：React版本 < 16.0.0
 
-<img src="React-yuan.assets/image-20191104180104762.png" alt="image-20191104180104762" style="zoom:80%;" />
+<img src="./React-yuan.assets/image-20191104180104762.png" alt="image-20191104180104762" style="zoom:80%;" />
 
 1. constructor
    - 同一个组件对象只会创建一次
    - 不能在第一次**挂载到页面之前**，调用setState，为了避免问题，构造函数中严禁使用setState
-2. componentWillMount：
+2. componentWillMount**（16版本以上已移除）**
    - 和构造函数一样，它只会运行一次
    - 可以使用setState，但是为了避免bug，不允许使用，因为在某些特殊情况下，该函数可能会调用多次
 3. **render**
@@ -553,21 +553,97 @@ export default class Comp extends Component {
    - 只会执行一次
    - 可以使用setState
    - 通常情况下，会将网络请求、启动计时器等一开始需要的操作，书写到该函数中
-5. componentWillReceiveProps
+5. componentWillReceiveProps**（16版本以上已移除）**
    - 即将接收新的属性值，指属性被重新赋值
    - 参数为新的属性对象
    - 该函数可能会产生一些bug，**不推荐使用**
 6. **shouldComponnetUpdate**
    - 指示React是否要重新渲染该组件，通过返回true和false来指定
    - 默认情况下，返回true
-7. componentWillUpdate
+7. componentWillUpdate**（16版本以上已移除）**
    - 组件即将被重新渲染
 8.  componentDidUpdate 
-   -  往在该函数中使用dom操作，改变元素
+   - 往在该函数中使用dom操作，改变元素
 9. **componentWillUnmount** 
    -  通常在该函数中销毁一些组件依赖的资源，比如计时器 
 
+#### 新版生命周期
+
+指的是：React版本 >= 16.0.0
+
+React官方认为，某个数据的来源必须是单一的
+
+React16废弃的三个生命周期函数
+
+- componentWillMount
+- componentWillReceiveProps
+- componentWillUpdate
+
+![react新版生命周](React-yuan.assets/react%E6%96%B0%E7%89%88%E7%94%9F%E5%91%BD%E5%91%A8.png)
+
+1. getDerivedStateFromProps
+   - 通过参数可以获取新的属性和状态
+   - 该函数是静态的
+   - 该函数的返回值会覆盖掉组件状态
+   - 该函数几乎没有什么作用
+2. getSnapshotBeforeUpdate
+   - 真实的DOM构建完成，但是还未实际渲染到页面中
+   - 在该函数中，通常用于实现一些附加的DOM操作
+   - 该函数的返回值，会作为componentDidUpdate的第三个参数
+
+### 传递元素内容
 
 
 
+1. 内置组件：div、p、h1等
+
+   ```html
+   <div>
+       元素内容
+   </div>
+   ```
+
+2. 自定义组件
+
+   如果给自定义组件传递元素内容，则React会将元素内容作为children属性传递过去
+
+   ```javascript
+   // index.js
+   import React from 'react';
+   import ReactDOM from 'react-dom';
+   import Comp from "./Comp"
+   
+   ReactDOM.render((
+       <Comp content1={<h2>第2组元素内容</h2>} content2={<h2>第3组元素内容</h2>}>
+   
+           <h2>第1组元素内容</h2>
+   
+       </Comp>
+   ), document.getElementById('root'));
+   
+   // Comp.js
+   import React from 'react'
+   
+   export default function Comp(props) {
+       console.log(props);
+       return (
+           <div className="comp">
+               <h1>组件自身的内容</h1>
+               {/* {props.children || <h1>默认值</h1>} */}
+               {props.children}
+               {props.content1}
+               {props.content2}
+           </div>
+       )
+   }
+   ```
+
+   ### 表单
+
+   1. 受控组件和非受控组件
+      - 受控组件：组件的使用者，有能力完全控制该组件的行为和内容。通常情况下，受控组件往往没有自身的状态，其内容完全受到属性的控制
+      - 非受控组件：组件的使用者，没有能力控制该组件的行为和内容，组件的行为和内容完全自行控制
+   2. **表单组件**，默认情况下是非受控组件，一旦设置了表单组件的value属性，则其变为受控组件(单选和多选框需要设置checked属性)
+
+   
 
