@@ -67,6 +67,7 @@ function getPageNumber(props) {
  * @param {*} props 
  */
 function toPage(target, props) {
+    console.log(target)
     if (target === props.current) {
         return;
     }
