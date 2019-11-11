@@ -845,6 +845,61 @@ React16废弃的三个生命周期函数
 -  不要在render中使用高阶组件 
 -  不要在高阶组件内部更改传入的组件 
 
+**个人补充**
+
+1. HOC组件的命名方式，一般为`with + 要分离的功能`，如`withLog、withLogin`等
+
+2. 一般将传入的组件，不做任何改动的在render中显示
+
+3. HOC组件中，导出的是一个函数组件，该组件运行后返回的组件可以是函数组件/类组件，如下
+
+   ```react
+   // withLog.js
+   import React from "react";
+   
+   export default function withLog(Comp, str) {
+     return class LoginWrapper extends React.Component {
+       componentWillMount() {
+         console.log(`日志：组件${Comp.name}被创建了！${Date.now()}`);
+       }
+       componentWillUnmount() {
+         console.log(`日志：组件${Comp.name}被销毁了！${Date.now()}`);
+       }
+       render() {
+         return (
+           <>
+             <h1>{str}</>
+             <Comp {...this.props} />
+           </>
+         );
+       }
+     };
+   }
+   
+   // withLogin.js
+   import React from "react";
+   import PropTypes from "prop-types";
+   
+   export default function withLogin(Comp, title) {
+     LoginWrapper.propTypes = {
+       isLogin: PropTypes.bool.isRequired
+     };
+   
+     function LoginWrapper(props) {
+       if (props.isLogin) {
+         return (
+           <>
+             <h1>{title}</h1>
+             <Comp {...props} />
+           </>
+         );
+       }
+       return null;
+     }
+     return LoginWrapper;
+   }
+   ```
+
 ### ref
 
 reference引用
@@ -853,7 +908,7 @@ reference引用
 
    -  ref作用于内置的html组件，得到的将是真实的dom对象
    - ref用于类组件，得到的将是类的实例
-   - ref不能用于函数组件
+   - ref不能用于函数组件（ref写的位置，不能是函数组件，函数组件内部可以使用）：React认为获得函数组件的引用没有意义
 
 2. ref不再推荐使用字符串赋值，字符串赋值的方式将来可能会被移除；
 
@@ -876,6 +931,16 @@ reference引用
       - 旧的函数被调用时，传递null
       - 新的函数被调用时，传递对象
 
+      ```react
+        		<input type="text" ref={el => {
+                  console.log('调用函数', el);
+                  this.txt = el;
+              }} />
+              <button onClick={() => {
+                  this.setState({});
+              }}>测试</button>
+      ```
+
    3. 如果ref所在的组件被卸载，会调用函数
 
 3. **谨慎使用ref**
@@ -883,15 +948,387 @@ reference引用
       能够使用属性和状态进行控制，就不要使用ref
 
       - 调用真实DOM对象中的方法
+      - 某个时候需要调用类组件中的方法
+            
       
-- 某个时候需要调用类组件中的方法
-      
+```react
+// 对象形式使用ref
+import React, { Component } from "react";
+
+class A extends Component {
+  method() {
+    console.log("调用了组件A的方法");
+  }
+  render() {
+    return <h1>组件A</h1>;
+  }
+}
+
+export default class Comp extends Component {
+  constructor(props) {
+    super(props);
+    this.txt = React.createRef();
+    this.compA = React.createRef();
+  }
+
+  handleClick = () => {
+    console.log(this.compA.current);
+    this.txt.current.focus();
+    this.compA.current.method();
+  };
+
+  render() {
+    return (
+      <div>
+        <input ref={this.txt} id="inp" type="text" />
+        <A ref={this.compA} />
+        <button onClick={this.handleClick}>获取焦点</button>
+      </div>
+    );
+  }
+}
+// 函数形式使用ref
+import React, { Component } from "react";
+
+export default class Comp extends Component {
+  state = {
+    show: true
+  };
+
+  getRef = el => {
+    console.log("函数被调用了", el);
+    this.txt = el;
+  };
+
+  handleClick = () => {
+      this.setState({
+          show: !this.state.show
+      });
+  };
+
+  componentDidMount() {
+    console.log("didMount", this.txt);
+  }
+
+  render() {
+    return (
+      <div>
+        {
+            this.state.show && <input ref={this.getRef} type="text" />
+        }
+        <button onClick={this.handleClick}>获取焦点</button>
+      </div>
+    );
+  }
+}
+
+```
 
 ### ref转发
 
 1. 使用`fowardRef`方法
-   1. 参数，传递的是函数组件，不能是类组件，并且，函数组件需要有第二个参数来得到ref
+   1. 参数，传递的是**函数组件**，不能是类组件，并且，函数组件需要有第二个参数来得到ref
    2. 返回值，返回一个新的组件
+2. ref转发的使用场景：当需要引用函数组件的内部元素，而非组件本身时
+
+```react
+import React, { Component } from "react";
+
+function A(props, ref) {
+  return (
+    <>
+      <h1 ref={ref}>A</h1>
+      <p>{props.words}</p>
+    </>
+  );
+}
+
+const NewA = React.forwardRef(A);
+
+export default class Comp extends Component {
+  ARef = React.createRef();
+
+  componentDidMount() {
+    console.log("componentDidMount", this.ARef);
+  }
+
+  render() {
+    return (
+      <div>
+        {/* <A ref={this.ARef} /> */}
+        <NewA ref={this.ARef} words="sfdsdfsadf" />
+      </div>
+    );
+  }
+}
+```
+
+```react
+// 转发类组件（将类组件用函数组件进行包装后进行转发）
+import React, { Component } from "react";
+
+class A extends Component {
+  render() {
+    return (
+      <h1 ref={this.props.forwardRef}>
+        组件A
+        <span>{this.props.words}</span>
+      </h1>
+    );
+  }
+}
+
+const NewA = React.forwardRef((props, ref) => {
+  return <A {...props} forwardRef={ref} />
+});
+
+export default class Comp extends Component {
+  ARef = React.createRef();
+
+  componentDidMount() {
+    console.log("componentDidMount", this.ARef);
+  }
+
+  render() {
+    return (
+      <div>
+        {/* <A ref={this.ARef} /> */}
+        <NewA ref={this.ARef} words="sfdsdfsadf" />
+      </div>
+    );
+  }
+}
+```
+
+### context
+
+上下文：context，表示做某一些事情的环境
+
+1. React中的上下文特点
+
+   - 当某个组件创建了上下文后，上下文中的数据，会被所有的后代组件共享
+   - 如果某个组件依赖了上下文，会导致该组件不在纯粹（纯粹指的是：外部数据仅来源于属性props）
+   - 一般情况下，用于第三方组件（通用组件）
+
+2. 旧版本API
+
+   **创建上下文**
+
+   只有类组件才可以创建上下文
+
+   1. 给类组件书写静态属性`childContextTypes`，使用该属性对上下文中的数据类型进行约束
+   2. 添加实例方法`getChildContext`，该方法返回的对象，即为上下文数据，该数据必须满足类型约束，该方法会在每次render之后运行
+
+   **使用上下文中的数据**
+
+   要求：如果要使用上下文中的数据，组件必须有一个静态属性`contextTypes`，该属性描述了需要获取的上下文中的数据类型
+
+   1. 可以在组件的构造函数中，通过第二个参数，获取上下文数据
+   2. **从组件的`context`属性中获取**
+   3. 在函数组件中，通过第二个参数，获取上下文数据
+
+   **上下文数据变化**
+
+   1. 上下文中的数据不可以直接变化，最终都是通过状态改变
+   2. 在上下文中加入一个处理函数，可以用于后代组件更改上下文数据
+
+   ```react
+   import React, { Component } from "react";
+   import PropTypes from "prop-types";
+   
+   const types = {
+     a: PropTypes.number,
+     b: PropTypes.string.isRequired,
+     onChangeA: PropTypes.func
+   };
+   
+   function ChildA(props, context) {
+     return (
+       <div>
+         <h1>ChildA</h1>
+         <h2>
+           a:{context.a}，b:{context.b}
+         </h2>
+         <ChildB />
+       </div>
+     );
+   }
+   
+   ChildA.contextTypes = types;
+   
+   class ChildB extends Component {
+     static contextTypes = types;
+   
+     constructor(props,context) {
+         super(props, context);
+     }
+   
+     render() {
+       return (
+         <p>
+           ChildB，来自于上下文的数据：a: {this.context.a}, b:{this.context.b}
+           <button
+             onClick={() => {
+               this.context.onChangeA(this.context.a + 2);
+             }}
+           >
+             子组件的按钮，a+2
+           </button>
+         </p>
+       );
+     }
+   }
+   
+   export default class Comp extends Component {
+     static childContextTypes = types;
+   
+     state = {
+       a: 123,
+       b: "abc"
+     };
+   
+     getChildContext() {
+       return {
+         a: this.state.a,
+         b: this.state.b,
+         onChangeA: newA => {
+           this.setState({
+             a: newA
+           });
+         }
+       };
+     }
+   
+     render() {
+       return (
+         <div>
+           <ChildA />
+         </div>
+       );
+     }
+   }
+   ```
+
+3. 新版本API
+
+   旧版本API存在严重的效率问题，并且容易导致滥用
+   
+   **创建上下文**
+   
+   上下文是一个独立于组件的对象，该对象通过`React.createContext(默认值)`创建，返回的是一个包含两个属性的对象
+   
+   1. Provider属性：生产者。一个组件，该组件会创建一个上下文，该组件有一个value属性，通过该属性，可以为其数据赋值
+   
+      同一个Provider，不要用到多个组件中，如果需要在其他组件中使用该数据，应该考虑将数据提升到更高的层次
+   
+   2. Consumer属性
+   
+   **使用上下文中的数据**
+   
+   1. 类组件中获取上下文
+   
+      1. 在类组件中，直接使用`this.context`获取上下文数据
+   
+         要求：必须拥有静态属性`contextTypes`，应赋值为创建的上下文对象
+   
+      2. 在类组件中，也可以使用`consumer`来获取上下文数据
+   
+   2. 在函数组件中，需要使用`consumer`来获取上下文数据
+   
+      - Consumer是一个组件
+      - 它的子节点，是一个函数（它的props.children需要传递一个函数）
+   
+   **注意细节**
+   
+   如果，上下文提供者（Context.Provoder）中的value属性发生变化（Object.i比较），会导致该上下文提供的所有后代元素全部重新渲染，无论该子元素是否优化（无论`shouldComponentUpdate`函数返回什么结果）
+   
+   ```react
+   import React, { Component } from "react";
+   
+   const ctx = React.createContext();
+   
+   function ChildA(props) {
+     return (
+       <div>
+         <h1>ChildA</h1>
+         <h2>
+           <ctx.Consumer>
+             {value => (
+               <>
+                 {value.a}, {value.b}
+               </>
+             )}
+           </ctx.Consumer>
+         </h2>
+         <ChildB />
+       </div>
+     );
+   }
+   
+   class ChildB extends Component {
+     render() {
+       return (
+         <ctx.Consumer>
+           {value => (
+             <p>
+               ChildB，来自于上下文的数据：a: {value.a}, b:{value.b}
+               <button
+                 onClick={() => {
+                   value.changeA(value.a + 2);
+                 }}
+               >
+                 后代组件的按钮，点击a+2
+               </button>
+             </p>
+           )}
+         </ctx.Consumer>
+       );
+     }
+   }
+   
+   // class ChildB extends Component {
+   //   static contextType = ctx;
+   
+   //   render() {
+   //     return (
+   //       <>
+   //         a: {this.context.a},
+   //         b: {this.context.b}
+   //         <button onClick={() => {
+   //             this.context.changeA(this.context.a + 1);
+   //         }}>加1</button>
+   //       </>
+   //     );
+   //   }
+   // }
+   
+   export default class NewContext extends Component {
+     state = {
+       a: 0,
+       b: "abc",
+       changeA: newA => {
+         this.setState({
+           a: newA
+         });
+       }
+     };
+   
+     render() {
+       return (
+         <ctx.Provider value={this.state}>
+           <div>
+             <ChildA />
+           </div>
+         </ctx.Provider>
+       );
+     }
+   }
+   
+   ```
+   
+   
+   
+   
 
 
 
