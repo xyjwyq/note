@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 
 const ctx = React.createContext();
+const ctx1 = React.createRef();
 
 function ChildA(props) {
   return (

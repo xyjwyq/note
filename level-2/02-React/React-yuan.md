@@ -1242,6 +1242,8 @@ export default class Comp extends Component {
    
    如果，上下文提供者（Context.Provoder）中的value属性发生变化（Object.i比较），会导致该上下文提供的所有后代元素全部重新渲染，无论该子元素是否优化（无论`shouldComponentUpdate`函数返回什么结果）
    
+4. 上下文的应用场景：编写一套组件（有多个组件），这些组件之间需要相互配合才能最终完成功能
+
    ```react
    import React, { Component } from "react";
    
@@ -1323,16 +1325,140 @@ export default class Comp extends Component {
        );
      }
    }
-   
    ```
    
-   
-   
+### `PureComponent`, 纯组件
+
+纯组件：用于避免不必要的渲染（运行render函数），从而提高效率
+
+优化：如果一个组件的属性和状态，都没有发生变化，重新渲染该组件是没有必要的
+
+`PureComponent`是一个组件，如果某个组件继承自该组件，则该组件的`shouldComponentUpdate`会进行优化，即对属性和状态进行浅比较
+
+**注意**
+
+1. `PureComponent`进行浅比较
+
+   - 为了效率，应该尽量使用`PureComponent`
+   - 要求不要改动之前的状态，永远是创建新的状态覆盖之前的状态（Immutable，不可变对象）
+   - 有一个第三方库，Immutable.js，它专门用于制作不可变对象
+
+2. 函数组件，使用`React.memo`函数制作纯组件，其原理是使用HOC原理，返回一个类组件，类组件包含该函数组件
+
+   ```react
+   function memo(FuncComp) {
+       return class Memo extends PureComponent {
+           render() {
+               return (
+               	<>
+                   	<FuncComp {...this.props} />
+                   </>
+               );
+       }
+   }
+   ```
+
+### render props
+
+有时候，某些组件的各种功能及其处理的逻辑几乎完全相同，只是显示的界面不一样，建议下面的方式任选其一来解决重复代码问题（横切关注点）
+
+1. render props
+   1. 某个组件，需要某个属性
+   2. 该属性是一个函数，函数的返回值用于渲染
+   3. 函数的参数会传递为需要的数据
+   4. 注意纯组件的属性（尽量避免每次传递的render props的地址不一致）
+   5. 通常该属性的名字叫做render
+2. HOC
+
+### Protals, 插槽
+
+插槽：将一个**React元素**渲染到指定的DOM容器中
+
+`ReactDOM.createProtal(React元素, 真实的DOM)`
+
+**注意**
+
+1. React中的事件是包装过的
+2. 它的事件冒泡，是根据虚拟DOM树来冒泡的，与真实的DOM无关
+
+```react
+import React from 'react'
+import ReactDOM from "react-dom"
+
+function ChildA() {
+    return ReactDOM.createPortal(<div className="child-a" style={{
+        marginTop: 200
+    }}>
+        <h1>ChildA</h1>
+        <ChildB />
+    </div>, document.querySelector(".modal"));
+}
+
+function ChildB() {
+    return <div className="child-b">
+        <h1>ChildB</h1>
+    </div>
+}
+
+export default function App() {
+    return (
+        <div className="app" onClick={e => {
+            console.log("App被点击了", e.target)
+        }}>
+            <h1>App</h1>
+            <ChildA />
+        </div>
+    )
+}
+```
+
+### 错误边界
+
+1. 默认情况下，若一个组件在**渲染期间**（render）发生错误，会导致整个组件树全部被卸载
+
+2. 默认情况下的错误处理机制，组件发生错误之后，若无法处理错误，则按照层级，往父元素抛出错误，若父元素无法处理，则继续向上抛出，直到根组件，若根组件英文无法处理错误，则整个组件树全部被卸载
+
+3. 错误边界：是一个组件，该组件会捕获到渲染期间（render）子组件发生的错误，并有能力阻止错误继续传播
+
+4. **让某个组件捕获错误的方式**
+
+   1. 编写生命周期函数` getDerivedStateFromError `
+      - 静态函数
+      - 运行时间点：渲染子组件的过程中，发生错误之后，更新页面之前
+      - **注意**：只有子组件发生错误，才会运行该函数
+      - 该函数返回一个对象，React会将该对象的属性覆盖掉当前组件的state
+      - 函数存在一个参数：错误对象
+      - 通常，该函数用于改变状态
+   2. 编写生命周期函数`componentDidCatch`
+      - 实例方法
+      - 运行时间点：渲染子组件的过程中，发生错误，更新页面之后，由于其运行时间点比较靠后，因此不太会在该函数中改变状态（在其中改变状态比较浪费效率）
+      - 该函数有两个参数：错误对象和错误信息
+      - 通常，该函数用于记录错误消息（即发送到后台进行记录或者在控制台打印）
+
+5. **细节**
+
+   某些错误，错误边界组件无法捕获
+
+   1. 自身的错误
+   2. 异步的错误
+   3. 事件中的错误
+
+   总结：**仅处理渲染子组件期间的同步错误**
+
    
 
 
 
-   
 
-   
+
+
+
+
+
+
+
+
+
+
+
 
