@@ -547,7 +547,7 @@ export default class Comp extends Component {
 
 指的是：React版本 < 16.0.0
 
-<img src="./React-yuan.assets/image-20191104180104762.png" alt="image-20191104180104762" style="zoom:80%;" />
+<img src="./React-yuan.assets/image-20191104180104762.png" alt="image-20191104180104762" style="zoom:33%;" />
 
 1. constructor
    - 同一个组件对象只会创建一次
@@ -589,7 +589,7 @@ React16废弃的三个生命周期函数
 - componentWillReceiveProps
 - componentWillUpdate
 
-![react新版生命周](React-yuan.assets/react%E6%96%B0%E7%89%88%E7%94%9F%E5%91%BD%E5%91%A8.png)
+<img src="React-yuan.assets/image-20191113125607927.png" alt="image-20191113125607927" style="zoom:33%;" />
 
 1. getDerivedStateFromProps
    - 通过参数可以获取新的属性和状态
@@ -1445,12 +1445,172 @@ export default function App() {
 
    总结：**仅处理渲染子组件期间的同步错误**
 
+### React中的事件
+
+   **这里的事件指的是：React内置的DOM组件中的事件**
+
+1. 给`document`注册事件
+2. 几乎所有的元素的事件处理，均在document的事件中处理
+   1. 一些不冒泡的事件，是直接在元素上监听的
+   2. 一些`docuemnt`上面没有的事件，直接在元素上监听
+3. 在`document`的事件处理，React会**根据虚拟DOM树**完成事件函数的调用
+4. React的事件参数，并非真实的DOM事件参数，是React合成的一个对象，该对象类似于真实DOM的事件参数
+   1. `stopPropagation`，阻止事件在虚拟DOM中冒泡
+   2. `nativeEvent`，可以得到真实的DOM事件对象
+   3. 为了提高执行效率，React使用事件对象池来处理事件对象
+
+**注意**
+
+1. 如果给真实的DOM注册事件，阻止了事件冒泡，则会导致React的相应事件无法触发
+2. 如果给真实的DOM注册事件，事件会先于React事件运行
+3. 通过React的事件中阻止事件冒泡，无法阻止真实的DOM事件冒泡
+4. 可以通过`nativeEvent.stopImmediatePropagation()`，阻止`document`上剩余事件的执行
+5. 在事件处理程序中，不要异步的使用事件对象，如果一定要用，需要调用`persist`函数
+
+### 渲染原理
+
+渲染：生成用于显示的虚拟DOM对象，以及将这些对象形成真实的DOM对象
+
+- `React元素`：`ReactElement`，通过 `React.createElement`创建（语法糖：JSX）
+
+- `React节点`：专门用于渲染到UI界面的对象，React会通过React元素，创建React节点，ReactDOM**一定**是通过React节点来进行渲染的
+
+  **节点类型**
+
+  - React DOM节点：创建该节点的React元素，其类型是一个字符串
+  - React 组件节点：创建该节点的React元素，其类型是一个函数或是一个类
+  - React 文本节点：由字符串、数字创建的
+  - React 空节点：由null、undefined、false、true
+  - React 数组节点：该节点由一个数组创建
+
+-  真实DOM：通过`document.createElement`创建的dom元素 
+
+<img src="React-yuan.assets/image-20191113102811163.png" alt="image-React渲染过程" style="zoom:33%;" />
+
+#### 首次渲染(新节点渲染)
+
+1.  通过参数的值创建节点 
+2.  根据不同的节点，做不同的事情 
+   1. 文本节点：通过`document.createTextNode`创建真实的文本节点
+   2. 空节点：什么都不做
+   3. 数组节点：遍历数组，将数组每一项递归创建节点（回到第1步进行反复操作，直到遍历结束）
+   4. DOM节点：通过`document.createElement`创建真实的DOM对象，然后立即设置该真实DOM元素的各种属性，然后遍历对应React元素的children属性，递归操作（回到第1步进行反复操作，直到遍历结束）
+   5.  组件节点 
+      1. 函数组件：调用函数(该函数必须返回一个可以生成节点的内容)，将该函数的返回结果递归生成节点（回到第1步进行反复操作，直到遍历结束）
+      2. 类组件：
+         1. 建该类的实例
+         2. 立即调用对象的生命周期方法：`static getDerivedStateFromProps`
+         3. 运行该对象的`render`方法，拿到节点对象（将该节点递归操作，回到第1步进行反复操作）
+         4. 将该组件的`componentDidMount`加入到执行队列（先进先出，先进先执行），当整个虚拟DOM树全部构建完毕，并且将真实的DOM对象加入到容器中后，执行该队列
+3. 生成出虚拟DOM树之后，将该树保存起来，以便后续使用
+4. 将之前生成的真实的DOM对象，加入到容器中。
+
+```react
+const app = <div className="assaf">
+    <h1>
+        标题
+        {["abc", null, <p>段落</p>]}
+    </h1>
+    <p>
+        {undefined}
+    </p>
+</div>;
+ReactDOM.render(app, document.getElementById('root'));
+```
+
+以上代码生成的虚拟DOM树： 
+
+<img src="React-yuan.assets/image-20191113105808363.png" alt="image-20191113105808363" style="zoom:33%;" />
+
+```react
+function Comp1(props) {
+    return <h1>Comp1 {props.n}</h1>
+}
+
+function App(props) {
+    return (
+        <div>
+            <Comp1 n={5} />
+        </div>
+    )
+}
+
+const app = <App />;
+ReactDOM.render(app, document.getElementById('root'));
+```
+
+以上代码生成的虚拟DOM树： 
+
+<img src="React-yuan.assets/image-20191113110335012.png" alt="image-20191113110335012" style="zoom:33%;" />
+
+```react
+class Comp1 extends React.Component {
+    render() {
+        return (
+            <h1>Comp1</h1>
+        )
+    }
+}
+
+class App extends React.Component {
+    render() {
+        return (
+            <div>
+                <Comp1 />
+            </div>
+        )
+    }
+}
+
+const app = <App />;
+ReactDOM.render(app, document.getElementById('root'));
+```
+
+以上代码生成的虚拟DOM树：
+
+<img src="React-yuan.assets/image-20191113110915563.png" alt="image-20191113110915563" style="zoom:33%;" />
+
+#### 更新节点
+
+1. 节点更新的场景
+   - 重新调用`ReactDOM.render`，触发根节点更新
+   - 在类组件的实例对象中调用`setState`，会导致该实例所在的节点更新
    
+2. 节点的更新
 
+   1. 如果调用的的是`ReactDOM.render`，进行根节点的对比（diff）更新
+   2. 如果调用的是`setState`
+      1.  运行生命周期函数，`static getDerivedStateFromProps `
+      2.  运行`shouldComponentUpdate`，如果该函数返回false，终止当前流程 
+      3.  运行`render`，得到一个新的节点，进入该新的节点的**对比更新** 
+      4.  将生命周期函数`getSnapshotBeforeUpdate`加入执行队列，以待将来执行 
+      5.  将生命周期函数`componentDidUpdate`加入执行队列，以待将来执行 
 
+   **后续步骤**
 
+   1. 更新虚拟DOM树
+   2. 完成真实的DOM更新
+   3. 依次调用执行队列中的`componentDidMount`
+   4. 依次调用执行队列中的`getSnapshotBeforeUpdate`
+   5. 依次调用执行队列中的`componentDidUpdate`
 
+3. 对比更新
 
+   1. 将新产生的节点，对比之前虚拟DOM中的节点，发现差异，完成更新
+
+   2. **问题：对比之前DOM树中的哪个节点？**
+
+      React为了提高对比效率，做出以下假设：
+
+      1.  假设节点不会出现层次的移动（对比时，直接找到旧树中对应位置的节点进行对比） 
+      2.  不同的节点类型会生成不同的结构 
+         1.  相同的节点类型：节点本身类型相同，如果是由React元素生成，type值还必须一致 
+         2.  其他的，都属于不相同的节点类型 
+      3.  多个兄弟通过唯一标识（key）来确定对比的新节点 
+         - **key值的作用 **： 用于通过旧节点，寻找对应的新节点，如果某个旧节点有key值，则其更新时，会寻找相同层级中的相同key值的节点，进行对比。 
+         -  **key值应该在一个范围内唯一（兄弟节点中），并且应该保持稳定** 
+
+   
 
 
 
