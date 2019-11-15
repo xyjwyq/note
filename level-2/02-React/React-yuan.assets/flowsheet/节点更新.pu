@@ -1,0 +1,28 @@
+@startuml
+
+start
+
+:判断节点更新方式;
+if(节点更新方式) then(React.render())
+    :进行根节点的对比（diff）更新;
+else(setState)
+    :运行生命周期函数，static getDerivedStateFromProps;
+    :运行shouldComponentUpdate;
+    if(shouldComponentUpdate返回值) then(false)
+        stop
+    else(true)
+        :运行render，得到一个新的节点，进入该新的节点的**对比更新**;
+        :将生命周期函数getSnapshotBeforeUpdate加入执行队列，以待将来执行;
+        :将生命周期函数componentDidUpdate加入执行队列，以待将来执行; 
+    endif
+endif
+:更新虚拟DOM树;
+:完成真实的DOM更新;
+:依次调用执行队列中的componentDidMount;
+:依次调用执行队列中的getSnapshotBeforeUpdate;
+:依次调用执行队列中的componentDidUpdate;
+
+
+stop
+
+@enduml
