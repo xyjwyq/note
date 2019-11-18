@@ -26,6 +26,14 @@ export default class Banner extends PureComponent {
 
   imgRef = React.createRef();
 
+  autoDuration = 2000;
+
+  timer = null;
+
+  componentDidMount() {
+    this.startMove();
+  }
+
   handleChange = direction => {
     let cur = this.state.current;
     if (direction === "left") {
@@ -49,6 +57,20 @@ export default class Banner extends PureComponent {
     });
   };
 
+  startMove() {
+    this.timer = setInterval(() => {
+      this.handleChange("right");
+    }, this.autoDuration);
+  }
+
+  stopAuto = () => {
+    clearInterval(this.timer);
+  };
+
+  startAuto = () => {
+    this.startMove();
+  };
+
   render() {
     return (
       <div
@@ -57,6 +79,8 @@ export default class Banner extends PureComponent {
           width: this.props.width,
           height: this.props.height
         }}
+        onMouseEnter={this.stopAuto}
+        onMouseLeave={this.startAuto}
       >
         <ImageContainer
           ref={this.imgRef}

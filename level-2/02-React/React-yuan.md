@@ -1492,20 +1492,20 @@ export default function App() {
 <img src="React-yuan.assets/新节点渲染.svg" alt="新节点渲染" style="zoom:100%;" />
 
 1.  通过参数的值创建节点 
-2.  根据不同的节点，做不同的事情 
-   1. 文本节点：通过`document.createTextNode`创建真实的文本节点
+2.  根据不同的节点，做不同的事情
+1. 文本节点：通过`document.createTextNode`创建真实的文本节点
    2. 空节点：什么都不做
    3. 数组节点：遍历数组，将数组每一项递归创建节点（回到第1步进行反复操作，直到遍历结束）
    4. DOM节点：通过`document.createElement`创建真实的DOM对象，然后立即设置该真实DOM元素的各种属性，然后遍历对应React元素的children属性，递归操作（回到第1步进行反复操作，直到遍历结束）
-   5.  组件节点 
+   5. 组件节点
       1. 函数组件：调用函数(该函数必须返回一个可以生成节点的内容)，将该函数的返回结果递归生成节点（回到第1步进行反复操作，直到遍历结束）
       2. 类组件：
          1. 建该类的实例
          2. 立即调用对象的生命周期方法：`static getDerivedStateFromProps`
          3. 运行该对象的`render`方法，拿到节点对象（将该节点递归操作，回到第1步进行反复操作）
          4. 将该组件的`componentDidMount`加入到执行队列（先进先出，先进先执行），当整个虚拟DOM树全部构建完毕，并且将真实的DOM对象加入到容器中后，执行该队列
-3. 生成出虚拟DOM树之后，将该树保存起来，以便后续使用
-4. 将之前生成的真实的DOM对象，加入到容器中。
+3.  生成出虚拟DOM树之后，将该树保存起来，以便后续使用
+4.  将之前生成的真实的DOM对象，加入到容器中。
 
 ```react
 const app = <div className="assaf">
@@ -1603,7 +1603,7 @@ ReactDOM.render(app, document.getElementById('root'));
 
    <img src="React-yuan.assets/对比更新.svg" alt="对比更新" style="zoom:100%;" />
 
-   将新产生的节点，对比之前虚拟DOM中的节点，发现差异，完成更新
+   1. 将新产生的节点，对比之前虚拟DOM中的节点，发现差异，完成更新
 
    2. **问题：对比之前DOM树中的哪个节点？（即找对比目标）**
 
@@ -1611,11 +1611,11 @@ ReactDOM.render(app, document.getElementById('root'));
    
       1.  假设节点不会出现层次的移动（对比时，直接找到旧树中对应位置的节点进行对比） 
       2.  不同的节点类型会生成不同的结构 
-         1.  相同的节点类型：节点本身类型相同，如果是由React元素生成，type值还必须一致 
-         2.  其他的，都属于不相同的节点类型 
+         1. 相同的节点类型：节点本身类型相同，如果是由React元素生成，type值还必须一致 
+         2. 其他的，都属于不相同的节点类型 
       3.  多个兄弟通过唯一标识（key）来确定对比的新节点 
-         - **key值的作用 **： 用于通过旧节点，寻找对应的新节点，如果某个旧节点有key值，则其更新时，会**寻找相同层级中**的相同key值的节点，进行对比。 
-         -  **key值应该在一个范围内唯一（兄弟节点中），并且应该保持稳定** 
+          - **key值的作用 **： 用于通过旧节点，寻找对应的新节点，如果某个旧节点有key值，则其更新时，会**寻找相同层级中**的相同key值的节点，进行对比。 
+          - **key值应该在一个范围内唯一（兄弟节点中），并且应该保持稳定** 
    
    2. **找到对比目标**
    
@@ -1652,9 +1652,9 @@ ReactDOM.render(app, document.getElementById('root'));
             2. 卸载旧节点
                -  **文本节点、DOM节点、数组节点、空节点、函数组件节点**：直接放弃该节点，如果节点有子节点，递归卸载节点 
                -  **类组件节点**： 
-                 1.  直接放弃该节点 
-                 2.  调用该节点的`componentWillUnMount`函数 
-                 3.  递归卸载子节点 
+                 1. 直接放弃该节点 
+                 2. 调用该节点的`componentWillUnMount`函数 
+                 3. 递归卸载子节点 
    
    3. **没找到对比目标**
    
@@ -1666,6 +1666,70 @@ ReactDOM.render(app, document.getElementById('root'));
         1.  新的DOM树中有节点被删除 
         2.  新的DOM树中有节点添加 
    
+
+#### 注意事项
+
+在了解React相关的渲染原理后，在书写代码时，有一点注意的是，当控制一个元素的显示与隐藏的时，尽量不要改变元素的结构，这样会造成性能的损耗
+
+```react
+import React, { Component } from 'react'
+
+
+export default class App extends Component {
+    state = {
+        visible: false
+    }
+    render() {
+        // 不推荐做法
+        // if (this.state.visible) {
+        //     return <div>
+        //         <h1>标题</h1>
+        //         <button onClick={() => {
+        //             this.setState({
+        //                 visible: !this.state.visible
+        //             })
+        //         }}>显示/隐藏</button>
+        //     </div>;
+        // }
+        //     return <div>
+        //         <button onClick={() => {
+        //             this.setState({
+        //                 visible: !this.state.visible
+        //             })
+        //         }}>显示/隐藏</button>
+        //     </div>;
+        // }
+        // 
+        
+        // 推荐做法1
+        // 利用css控制元素的显示和隐藏
+         return (
+            <div>
+               <h1 style={{display: this.state.visible ? 'block' : 'none'}}>标题</h1>
+                <button onClick={() => {
+                    this.setState({
+                        visible: !this.state.visible
+                    })
+                }}>显示/隐藏</button>
+            </div>
+        )
+        
+        // 推荐做法2：无论显示隐藏，在该位置上都存在一个React元素，以提高对比更新时查找对比元素的效率
+        const h1 = this.state.visible? <h1>标题</h1> : null;
+        return (
+            <div>
+                {h1}
+                <button onClick={() => {
+                    this.setState({
+                        visible: !this.state.visible
+                    })
+                }}>显示/隐藏</button>
+            </div>
+        )
+    }
+}
+```
+
 ### 工具
 
 **严格模式**
@@ -1678,11 +1742,12 @@ StrictMode(`React.StrictMode`)，本质是一个组件，该组件不进行UI渲
 
 - 关于使用废弃的 findDOMNode 方法的警告
 
--  检测意外的副作用 
+- 检测意外的副作用 
 
-   React要求，副作用代码仅出现在以下生命周期函数中 
+  React要求，副作用代码仅出现在以下生命周期函数中 
 
   - ` ComponentDidMount `
+
   - ` ComponentDidUpdate `
   - ` ComponentWillUnMount `
 
@@ -1694,7 +1759,7 @@ StrictMode(`React.StrictMode`)，本质是一个组件，该组件不进行UI渲
   -  本地存储 
   -  改变函数外部的变量 
 
-  **相反的，如果一个函数没有副作用，则可以认为该函数是一个纯函数 **
+  **相反的，如果一个函数没有副作用，则可以认为该函数是一个纯函数**
 
   在严格模式下，虽然不能监控到具体的副作用代码，但它会将不能具有副作用的函数调用两遍，以便发现问题。（这种情况，仅在开发模式下有效） 
 
@@ -1741,22 +1806,30 @@ state Hool是一个在函数组件中使用的函数（`useState`），用于在
 1. `useState`函数
    - 函数有一个参数，这个参数的值表示状态的默认值
    - 函数的返回值是一个数组，该数组一定包含来两项
+
      1. 当前的状态值
      2. 改变状态的函数
+
 2. 一个函数组件中可以有多个状态，这种做法非常有利于横向切分关注点
-3. **注意细节**
+
+3. `useState`实现原理
+
+   <img src="React-yuan.assets/useState实现原理.svg" alt="useState原理" style="zoom:100%;" />
+
+4. **注意细节**
+
    -  `useState`最好写到函数的起始位置，便于阅读 
    -  `useState`严禁出现在代码块（判断、循环）中 
    -  `useState`返回的函数（数组的第二项），**引用不变（节约内存空间）**
    -  **使用函数改变数据**
-     -  若数据和之前的数据完全相等（使用Object.is比较），不会导致重新渲染，以达到优化效率的目的 
-     -  **传入的值不会和原来的数据进行合并，而是直接替换**
+- 若数据和之前的数据完全相等（使用Object.is比较），不会导致重新渲染，以达到优化效率的目的 
+     - **传入的值不会和原来的数据进行合并，而是直接替换**
    -   如果要实现强制刷新组件 
-     -   类组件：使用`forceUpdate`函数 
-       -  强制刷新，不会运行`shouldComponentUpdate`函数
-     -  函数组件：使用一个空对象的`useState `
+- 类组件：使用`forceUpdate`函数 
+       - 强制刷新，不会运行`shouldComponentUpdate`函数
+- 函数组件：使用一个空对象的`useState `
    -  **如果某些状态之间没有必然的联系，应该分化为不同的状态，而不要合并成一个对象** 
-   -  和类组件的状态一样，**函数组件中改变状态可能是异步的（在DOM事件中），多个状态变化会合并以提高效率**，此时，不能信任之前的状态，而应该使用回调函数的方式改变状态
+-  和类组件的状态一样，**函数组件中改变状态可能是异步的（在DOM事件中），多个状态变化会合并以提高效率**，此时，不能信任之前的状态，而应该使用回调函数的方式改变状态
    - **如果状态变化要使用到之前的状态，尽量传递函数**
 
 ### Effect Hook
@@ -1779,25 +1852,100 @@ Effect Hool：用于在函数组件中处理副作用
 
    -  每个函数组件中，可以多次使用`useEffect`，但**不要放入判断或循环等代码块中**
 
-   -  `useEffect`中的副作用函数，可以有返回值，**返回值必须是一个函数**，该函数叫做清理函数 
+   - `useEffect`中的副作用函数，可以有返回值，**返回值必须是一个函数**，该函数叫做清理函数 
 
      - 该函数运行时间点，在每次运行副作用函数之前
      - 首次渲染组件不会运行
      - 组件被销毁时一定会运行
 
-   -  `useEffect`函数，可以传递第二个参数 
+   - `useEffect`函数，可以传递第二个参数 
 
      - 第二个参数是一个数组
      - 数组中记录该副作用的依赖数据
      - 当组件重新渲染后，只有依赖数据与上一次不一样的时，才会执行副作用
-     -  所以，当传递了依赖数据之后，如果数据没有发生变化
-     - 副作用函数仅在第一次渲染后运行
+     - 所以，当传递了依赖数据之后，如果数据没有发生变化
+       - 副作用函数仅在第一次渲染后运行
        - 清理函数仅在卸载组件后运行
-     - 使用空数组作为依赖项，则副作用函数仅在挂载时运行一次
+       - 使用空数组作为依赖项，则副作用函数仅在挂载时运行一次
 
    -  副作用函数中，如果使用了函数上下文中的变量，则由于闭包的影响，会导致副作用函数中变量不会实时变化。 
 
    -  副作用函数在每次注册时，会覆盖掉之前的副作用函数，因此，尽量保持副作用函数稳定，否则控制起来会比较复杂。 
+
+### 自定义Hook
+
+1. 自定义Hook：将一些常用的额、跨越多个组件的Hook功能，抽离出去形成一个函数，该函数就是自定义Hook
+
+2. 自定义Hook，由于其内部需要使用Hook功能，所以它本身也需要按照Hook的规定实现
+
+   1. 函数名必须以use开头
+   2. 调用自定义Hook函数时，应该放到顶层
+
+   例如：
+
+   1. 很多组件需要在第一次加载完成之后，获取所有学生数据
+   2. 很多组件都需要在第一次加载完成后，启动一个计时器，然后在组件销毁时卸载
+
+   >  使用Hook的时候，如果没有严格按照Hook的规则进行，eslint的一个插件（eslint-plugin-react-hooks）会报出警告 
+
+### Reducer Hook
+
+学完Redux之后学习
+
+### Context Hook
+
+用于获取上下文数据
+
+````react
+import React, {useContext} from 'react';
+
+const ctx = React.createContext();
+
+function Test() {
+    const value = useContext(ctx);
+    return <h1>Test，上下文的值: { value }</h1>
+}
+
+export default function App() {
+    return (
+    	<div>
+        	<ctx.Provider value="abc">
+                <Test/>
+            </ctx.Provider>
+        </div>
+    );
+}
+````
+
+### Callback Hook
+
+1. 函数名：`useCallback`，用于得到一个固定引用值的函数，**通常用它进行性能优化**
+
+2. `useCallback`
+
+   该函数有两个参数
+
+   1. 函数，`useCallback`会固定该函数的引用，只要依赖项没有发生变化，则始终返回之前函数的地址
+   2. 数组，记录依赖项
+
+   该函数返回：引用相对固定的函数地址
+
+### Memo Hook
+
+1. 函数名：`useMemo`，用于保持一些比较稳定的数据，通常用于**性能优化**
+2. **如果React元素本身的引用没有发生变化，一定不会重新渲染**
+
+### Ref Hook
+
+1. `useRef`:
+
+   一个参数
+
+   - 默认值
+
+   返回一个固定对象：`{current: 值}`
+
+
 
 
 

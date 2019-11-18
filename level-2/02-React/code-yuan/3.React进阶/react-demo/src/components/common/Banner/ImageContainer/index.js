@@ -44,6 +44,7 @@ export default class ImageContainer extends PureComponent {
   render() {
     const imgs = this.props.imgSrc.map((it, i) => (
       <img
+        alt="banner"
         key={i}
         src={it}
         style={{
