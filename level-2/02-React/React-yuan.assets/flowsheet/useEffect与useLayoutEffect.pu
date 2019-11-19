@@ -1,0 +1,19 @@
+@startuml
+
+start
+
+:对DOM进行了改动(同步);
+note right
+浏览器会将一些列DOM操作集中处理，然后统一更新渲染
+end note
+:componentDieMount\ncomponentDidUpdate\nuseLayoutEffectHook;
+partition 等待渲染(异步) {
+    :浏览器下一次渲染时间到达;
+    :对比差异，进行渲染;
+    :用户看到效果;
+}
+:useEffect;
+
+stop
+
+@enduml

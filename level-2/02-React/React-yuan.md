@@ -572,7 +572,7 @@ export default class Comp extends Component {
    - 默认情况下，返回true
 7. componentWillUpdate**（16版本以上已移除）**
    - 组件即将被重新渲染
-8.  componentDidUpdate 
+8. componentDidUpdate
    - 往在该函数中使用dom操作，改变元素
 9. **componentWillUnmount** 
    -  通常在该函数中销毁一些组件依赖的资源，比如计时器 
@@ -1609,14 +1609,14 @@ ReactDOM.render(app, document.getElementById('root'));
 
       React为了提高对比效率，做出以下假设：
    
-      1.  假设节点不会出现层次的移动（对比时，直接找到旧树中对应位置的节点进行对比） 
-      2.  不同的节点类型会生成不同的结构 
+      1. 假设节点不会出现层次的移动（对比时，直接找到旧树中对应位置的节点进行对比）
+      2. 不同的节点类型会生成不同的结构
          1. 相同的节点类型：节点本身类型相同，如果是由React元素生成，type值还必须一致 
-         2. 其他的，都属于不相同的节点类型 
-      3.  多个兄弟通过唯一标识（key）来确定对比的新节点 
-          - **key值的作用 **： 用于通过旧节点，寻找对应的新节点，如果某个旧节点有key值，则其更新时，会**寻找相同层级中**的相同key值的节点，进行对比。 
-          - **key值应该在一个范围内唯一（兄弟节点中），并且应该保持稳定** 
-   
+         2. 其他的，都属于不相同的节点类型
+      3. 多个兄弟通过唯一标识（key）来确定对比的新节点
+         - **key值的作用 **： 用于通过旧节点，寻找对应的新节点，如果某个旧节点有key值，则其更新时，会**寻找相同层级中**的相同key值的节点，进行对比
+         - **key值应该在一个范围内唯一（兄弟节点中），并且应该保持稳定** 
+      
    2. **找到对比目标**
    
       1. 判断节点类型是否一致
@@ -1945,6 +1945,82 @@ export default function App() {
    - 默认值
 
    返回一个固定对象：`{current: 值}`
+
+### ImperativeHandle Hook
+
+1. 对于类组件，可以使用ref得到其组件实例，然后通过实例使用其上面的一些方法，但是函数组件不可以
+
+2. `useImperativeHandleHook`
+
+   三个参数
+
+   1. ref值，传入的ref对象`{current:值}`
+   2. 函数，使用函数的返回值作为current属性的值
+   3. 依赖项
+
+   运行
+
+   - 如果不给依赖项，则每次运行函数组件都会调用该方法
+   - 如果使用了依赖项，则第一次调用后，会进行缓存，只有依赖项发生变化才会重新调用
+
+```react
+function Test(props, ref) {
+    useImperativeHandleHook(ref, () => {
+        // 相当于 ref.current = 1
+        return 1;
+    }, []);
+}
+```
+
+### LayoutEffect Hook
+
+<img src="React-yuan.assets/useEffect%E4%B8%8EuseLayoutEffect.svg" style="zoom:75%;" />
+
+1. `useEffect`：浏览器渲染完成之后，用户看到新的渲染效果之后
+2. `useLayoutEffectHook`：浏览器完成了DOM改动，但没有呈现给用户
+3. 应该尽量使用`useEffect`，因为它不会导致渲染阻塞，如果出现了问题，再考虑使用`useLayoutEffectHook`
+
+### DebugValue Hook
+
+1. `useDebugValueHook`：用于将**自定义Hook**的关联数据显示到调试栏
+2.  如果创建的自定义Hook通用性比较高，可以选择使用useDebugValue方便调试 
+
+### React动画
+
+1. React动画库：`react-transition-group`
+
+#### CSSTransition
+
+1. 进入时，发生：
+   1. 为CSSTransition内部的DOM根元素（后续统一称之为DOM元素）添加样式enter 
+   2. 在一下帧(enter样式已经完全应用到了元素)，立即为该元素添加样式enter-active 
+   3. 当timeout结束后，去掉之前的样式，添加样式enter-done 
+2. 退出时，发生：
+   1. 为CSSTransition内部的DOM根元素（后续统一称之为DOM元素）添加样式exit 
+   2. 在一下帧(exit样式已经完全应用到了元素)，立即为该元素添加样式exit-active 
+   3. 当timeout结束后，去掉之前的样式，添加样式exit-done 
+3. 设置classNames属性，可以指定类样式的名称 
+   1. 字符串： 为类样式添加前缀 
+   2. 对象： 为每个类样式指定具体的名称（非前缀） 
+4. 关于首次渲染时的类样式，appear、apear-active、apear-done，它和enter的唯一区别在于完成时，会同时加入apear-done和enter-done 
+5. 可以与 Animate.css联用 
+
+#### SwitchTransition
+
+1. 用于有秩序的切换内部组件 
+2. 默认情况下：out-in
+   1. 当key值改变时，会将之前的DOM根元素添加退出样式（exit,exit-active) 
+   2. 退出完成后，将该DOM元素移除 
+   3. 重新渲染内部DOM元素 
+   4. 为新渲染的DOM根元素添加进入样式(enter, enter-active, enter-done) 
+3. in-out
+   1. 重新渲染内部DOM元素，保留之前的元素 
+   2. 为新渲染的DOM根元素添加进入样式(enter, enter-active, enter-done) 
+   3. 将之前的DOM根元素添加退出样式（exit,exit-active) 
+   4. 退出完成后，将该DOM元素移除 
+4. 该库寻找dom元素的方式，是使用已经过时的API：findDomNode，该方法可以找到某个组件下的DOM根元素 
+
+## Router
 
 
 
