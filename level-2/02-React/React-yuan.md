@@ -1945,12 +1945,14 @@ export default function App() {
    - 默认值
 
    返回一个固定对象：`{current: 值}`
+   
+2. **[个人理解]**：函数组件首次运行会运行该函数，产生一个对象，并由React节点持有该对象的引用，之后重新渲染均不会再运行该函数（即由`useRef`产生的对象，在函数组件销毁之前，一直保持原引用）
 
-### ImperativeHandle Hook
+### ImpreativeHandle Hook
 
 1. 对于类组件，可以使用ref得到其组件实例，然后通过实例使用其上面的一些方法，但是函数组件不可以
 
-2. `useImperativeHandleHook`
+2. `useImperativeHandle`
 
    三个参数
 
@@ -1965,7 +1967,7 @@ export default function App() {
 
 ```react
 function Test(props, ref) {
-    useImperativeHandleHook(ref, () => {
+    useImperativeHandle(ref, () => {
         // 相当于 ref.current = 1
         return 1;
     }, []);
@@ -1977,12 +1979,12 @@ function Test(props, ref) {
 <img src="React-yuan.assets/useEffect%E4%B8%8EuseLayoutEffect.svg" style="zoom:75%;" />
 
 1. `useEffect`：浏览器渲染完成之后，用户看到新的渲染效果之后
-2. `useLayoutEffectHook`：浏览器完成了DOM改动，但没有呈现给用户
+2. `useLayoutEffect`：浏览器完成了DOM改动，但没有呈现给用户
 3. 应该尽量使用`useEffect`，因为它不会导致渲染阻塞，如果出现了问题，再考虑使用`useLayoutEffectHook`
 
 ### DebugValue Hook
 
-1. `useDebugValueHook`：用于将**自定义Hook**的关联数据显示到调试栏
+1. `useDebugValue`：用于将**自定义Hook**的关联数据显示到调试栏
 2.  如果创建的自定义Hook通用性比较高，可以选择使用useDebugValue方便调试 
 
 ### React动画
@@ -2019,6 +2021,10 @@ function Test(props, ref) {
    3. 将之前的DOM根元素添加退出样式（exit,exit-active) 
    4. 退出完成后，将该DOM元素移除 
 4. 该库寻找dom元素的方式，是使用已经过时的API：findDomNode，该方法可以找到某个组件下的DOM根元素 
+
+#### TransitionGroup
+
+ 该组件的children，接收多个Transition或CSSTransition组件，该组件用于根据这些子组件的key值，控制他们的进入和退出状态 
 
 ## Router
 
