@@ -2108,9 +2108,9 @@ HTML5出现后，新增了History API，从此以后，浏览器拥有了改变�
       3. 如果不写path，则会匹配任意路径
    2. `component`：匹配成功后要显示的组件
    3. `children`
-      - 传递React元素，无论是否匹配，一定会显示children，并且忽略component属性
+      - <span style="color:red">？？？传递React元素，无论是否匹配，一定会显示children，并且忽略component属性（官网指定children取值应该是一个函数）</span>
       - 传递一个函数，该函数有多个参数，这些参数来自于上下文，该函数返回React元素，则一定会显示返回的元素，并且忽略component属性
-3. React组件可以写到任意的地方，只要保证它是Router组件的后代元素
+3. Route组件可以写到任意的地方，只要保证它是Router组件的后代元素
 
 #### Switch组件
 
@@ -2161,7 +2161,7 @@ Router组件会创建一个上下文，并且，向上下文中注入一些信�
    ```react
    <Route path="/a/b/c/:year/:month/:day" />
    <Route path="/a/b/c/:year?/:month?/:day?" />
-   <Route path="/a/b/c/:year(/d+/)/:month(/d+/)/:day(/d+/)" />
+   <Route path="/a/b/c/:year(\d+)/:month(\d+)/:day(\d+)" />
    <Route path="/a/b/c/:year/:month/:day/*" />
    ```
 
@@ -2180,6 +2180,58 @@ Router组件会创建一个上下文，并且，向上下文中注入一些信�
 
 1. 将路由信息从父组件一层一层传递到子组件（不适合嵌套层级太深的组件）
 2. 使用React-Router提供的高阶组件`withRouter`，包装要使用的组件，该高阶组件会返回一个新组件，新组件将向提供的组件注入路径信息
+
+### 其他组件
+
+已学习组件：
+
+- Router：BrowserRouter、HashRouter
+- Route
+- Switch
+- 高阶函数：withRouter
+
+#### Link
+
+1. 生成一个无需刷新的a元素
+2. 属性：
+   - to
+     - 字符串：跳转的目标地址
+     - 对象：
+       - pathname: url路径
+       - search
+       - hash
+       - state：附加的状态信息
+   - replace：bool，表示是否是替换当前地址，默认是false
+   - innerRef：可以将内部的a元素的ref附着在传递的对象的或函数参数上
+     - 函数
+     - 对象
+
+#### NavLink
+
+1. 是一种特殊的Link，Link组件具备的功能它都有
+
+   其具备的额外功能是：根据当前地址和链接地址，来决定该链接的样式
+
+2. 属性：
+
+   - activeClassName：匹配时使用的类名
+   - activeStyle：匹配时使用的内联样式
+   - exact：是否精确匹配
+   - sensitive：匹配时是否区分大小写
+   - strict：是否严格匹配最后一个斜杠
+
+#### Redirect
+
+1. 重定向组件，当加载到该组件时，会自动跳转（无刷新）到另外一个地址
+2. 属性
+   - to：跳转的地址
+     - 字符串
+     - 对象
+   - push：默认为false，表示跳转使用的替换方式，设置为true后，则使用push的方式跳转
+   - from：当匹配到from地址规则时才进行跳转
+   - exact：是否精确匹配
+   - sensitive：匹配时是否区分大小写
+   - strict：是否严格匹配最后一个斜杠
 
 
 
