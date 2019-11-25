@@ -1,0 +1,28 @@
+.nav {
+  width: 500px;
+  padding: 20px;
+  margin: 0 auto;
+  background-color: #008c8c;
+  color: #fff;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.nav a {
+  color: inherit;
+  margin: 0 20px;
+  text-decoration: none;
+}
+
+.nav a.active {
+  color: khaki;
+}
+
+.main {
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #ccc ;
+  box-sizing: border-box;
+}

@@ -6,21 +6,19 @@ import {
   Redirect
 } from "react-router-dom";
 
-import config from './routeConfig'
-
 function User({ match }) {
-  console.log(config);
+  console.log(match.url);
   return (
     <div>
       <Link
-        to={config.user.update}
+        to={`${match.url}/update`}
         style={{
           marginRight: 100
         }}
       >
         用户信息 
       </Link>
-      <Link to={config.user.pay.root}>充值</Link>
+      <Link to={`${match.url}/pay`}>充值</Link>
       <div
         style={{
           width: 500,
@@ -30,9 +28,9 @@ function User({ match }) {
           margin: "0 auto"
         }}
       >
-        <Route path={config.user.update} exact component={UserUpdate} />
-        <Route path={config.user.pay.root} exact component={UserPay} />
-        <Redirect to={config.user.update} />
+        <Route path={`${match.url}/update`} exact component={UserUpdate} />
+        <Route path={`${match.url}/pay`} exact component={UserPay} />
+        <Redirect to={`${match.url}/update`} />
       </div>
     </div>
   );
@@ -49,7 +47,7 @@ function UserPay() {
 export default function Comp() {
   return (
     <Router>
-      <Route path={config.user.root} component={User} />
+      <Route path="/user" component={User} />
       {/* <Redirect from="/user" to="/user/update" /> */}
     </Router>
   );
