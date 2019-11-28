@@ -2236,28 +2236,247 @@ Router组件会创建一个上下文，并且，向上下文中注入一些信�
 
 ### 常见应用
 
-1. 路由嵌套
+#### 路由嵌套
 
-   出现的问题：……
-   
-   两种方式：
-   
-   - 使用match中的url
-   - 写配置文件
-   
-2. 受保护的页面
+解决的问题：对于子页面的路径问题，如果固定书写，缺乏灵活性且不易修改
 
-   主要使用Route组件的render属性，其值为一个函数，在路径匹配后会运行该函数，可以在该函数中进行相应的条件判断
+两种方式：
 
-3. 导航守卫
+- 使用match中的url：该方式得到父组件的匹配路径，然后将其与子页面的相应路径进行拼接
 
-4. 切换动画
+- 写配置文件：将路由组件的层级结构以及路径进行配置，然后通过函数递归拼接
 
-5. 滚动条问题
+  ```js
+  const config = {
+    user: {
+      root: "/user",
+      update: "/update",
+      pay: {
+        root: "/pay",
+        beforePay: "/before",
+        afterPay: "/after"
+      }
+    }
+  };
+  ```
 
-6. 阻止跳转
+#### 受保护的页面（组件内守卫）
+
+解决的问题：在路径匹配的情况下，某组件需要在满足某些条件（如：登录权限等）的情况下才显示
+
+解决方式：当路径匹配时，进行相应组件加载时，使用render属性而菲尔component属性
+
+- render属性的值为一个函数，该函数在路径匹配时才会运行，在函数中进行条件判断，若满足则返回相应组件，若不满足，则可以进行重定向（并可以在重定向的过程中携带相应路径参数）等操作
+  - 该函数有一个参数，`{history, location, match}`
+  - 该函数需要返回一个可以被渲染的内容
+
+#### vue路由模式的实现
+
+解决问题：实现vue的静态路由方式
+
+解决方式：
+
+```react
+// routeConfig.js
+import Home from "./components/Home";
+import News from "./components/News";
+import NewsHome from "./components/NewsHome";
+import NewsDetail from "./components/NewsDetail";
+import NewsSearch from "./components/NewsSearch";
+
+export default [
+  {
+    path: "/news",
+    name: "news",
+    component: News,
+    children: [
+      {
+        path: "/",
+        name: "newsHome",
+        exact: true,
+        component: NewsHome
+      },
+      {
+        path: "/detail",
+        name: "newsDetail",
+        exact: true,
+        component: NewsDetail
+      },
+      {
+        path: "/search",
+        name: "newsSearch",
+        exact: true,
+        component: NewsSearch
+      }
+    ]
+  },
+  {
+    path: "/",
+    name: "home",
+    component: Home
+  }
+];
 
 
+// RootRouter.js
+import React from "react";
+import routeConfig from "./routeConfig";
+import { Route, Switch } from "react-router-dom";
+
+function getRoutes(routes, basePath) {
+  if (!Array.isArray(routes)) {
+    return null;
+  }
+
+  const rs = routes.map((rt, i) => {
+    const { children, path, component: Component, ...rest } = rt;
+    let newPath = basePath + path;
+    newPath = newPath.replace(/\/\//g, "/");
+    return (
+      <Route
+        key={i}
+        path={newPath}
+        {...rest}
+        render={values => {
+          return (
+            <Component {...values}>{getRoutes(children, newPath)}</Component>
+          );
+        }}
+      ></Route>
+    );
+  });
+  return <Switch>{rs}</Switch>;
+}
+
+export default function RootRouter() {
+  return <>{getRoutes(routeConfig, "/")}</>;
+}
+```
+
+#### 导航守卫
+
+解决的问题：当路径来回切换时，需要进行某些信息的传递和提示时
+
+知识点：
+
+- 导航守卫：当离开一个页面，进入另一个页面时，触发的事件
+
+- history对象：
+
+  - listen：添加 一个监听器，监听地址的变化，**当地址发生变化时，会调用传递的函数** 
+
+    - 参数为一个函数，函数的运行时间点：发生在**即将**跳转到新页面时
+      - 参数1：location对象， 记录即将跳转到的地址信息
+      - 参数2： action，一个字符串，表示进入该地址的方式 
+        - POP
+          - 通过点击浏览器的前进、后退
+          - `history.go`
+          - `history.goBack`
+          - `history.goForward`
+        - PUSH
+          - `history.push`
+        - REPLACE
+          - `history.replace`
+      - 返回结果：函数，可以调用该函数取消监听
+
+    ```js
+    const unListen = history.listen((location, action) => {
+        console.log(locaiotn, action);
+    })
+    ```
+
+  - block： 设置一个阻塞，并同时设置阻塞消息，**当页面发生跳转时，会进入阻塞**，并将阻塞消息传递到路由根组件的 
+
+    - history对象只绑定第一次执行的block，后面的block均不会进行绑定
+    - block需要配合Router组件的`getUserConffirmation`参数进行匹配和，不然始终默认显示阻塞信息
+
+    ```js
+    const unBlock = history.block('message');
+    const unBLock = history.block((location, action) ==> {
+                      console.log(location, action);
+                      return "message"
+                  });
+    ```
+
+- ` getUserConfirmation `： 路由根组件 Router属性
+
+  - 参数：函数
+    - 参数1：阻塞消息
+      - 字符串消息
+      - 函数
+        - 参数1：location对象
+        - 参数2： action
+        - 返回结果： 一个字符串，用于表示阻塞消息 
+    - 参数2：  回调函数，调用该函数并传递true，则表示进入到新页面，否则，不做任何操作 
+
+#### 切换动画
+
+```react
+import React from "react";
+import { CSSTransition, SwitchTransition } from "react-transition-group";
+import { Route } from "react-router-dom";
+import "animate.css";
+
+export default function TransitionRoute({ component: Component, ...rest }) {
+  return (
+    <Route {...rest}>
+      {({ match }) => {
+        return (
+          <CSSTransition
+            in={match ? true : false}
+            timeout={500}
+            classNames={{
+              enter: "animated fast fadeInRight",
+              exit: "animated fast fadeOutLeft"
+            }}
+            mountOnEnter={true}
+            unmountOnExit={true}
+          >
+            <Component />
+          </CSSTransition>
+        );
+      }}
+    </Route>
+  );
+}
+
+```
+
+#### 滚动条问题
+
+解决的问题：地址跳转时，不刷新页面，因此在跳转路径时，滚动条不能恢复到初始位置
+
+解决方式：
+
+1. 在每个路由对应的组件中， 使用hook或在`componentDidMount`中恢复滚动条位置
+2. 设置block，在`getUserConfirmation`中恢复滚动条位置，因每次执行该函数时，地址均在变换
+
+#### 阻止跳转
+
+解决的问题：在某些页面填写了某些数据时，进行页面跳转时，提示是否要舍弃填写信息等
+
+解决方式：将表单组件变味受控组件，在组件`onChange`事件中改变状态时，根据`e.target.value`值是否为`undefined`，设置和取消block
+
+## Redux
+
+### 核心概念
+
+1. MVC：它是一个 UI的解决方案，用于降低UI，以及UI关联的数据的复杂度 
+2. 传统的服务端MVC
+3. 前端MVC模式困难
+4. 前端独立数据解决方案
+   1. Flux
+   2. Redux
+
+### Redux管理数据
+
+### action
+
+### reducer
+
+### store
+
+### Redux中间件
 
 
 
