@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="247px" preserveAspectRatio="none" style="width:540px;height:247px;" version="1.1" viewBox="0 0 540 247" width="540px" zoomAndPan="magnify"><defs><filter height="300%" id="f195nikjjko3pj" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="58" x="10" y="108.6802"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="38" x="20" y="134.7241">action</text><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="175" x="118" y="20"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="155" x="128" y="46.0439">1. plain-object(平面对象)</text><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="186" x="343" y="20"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" text-decoration="underline" textLength="33" x="353" y="46.0439">proto</text><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="133" x="386" y="46.0439">指向Object.prototype</text><path d="M293,39.5601 L303,39.5601 C318,39.5601 318,39.5601 333,39.5601 L343,39.5601 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M68,128.2402 L78,128.2402 C93,128.2402 93,39.5601 108,39.5601 L118,39.5601 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="210" x="118" y="79.1201"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="190" x="128" y="105.1641">使用payload属相表示附加数据</text><path d="M68,128.2402 L78,128.2402 C93,128.2402 93,98.6802 108,98.6802 L118,98.6802 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="117" x="118" y="167.8003"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="97" x="128" y="193.8442">必须有type属性</text><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="76" x="285" y="138.2402"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="56" x="295" y="164.2842">操作类型</text><path d="M235,187.3604 L245,187.3604 C260,187.3604 260,157.8003 275,157.8003 L285,157.8003 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><rect fill="#FEFECE" filter="url(#f195nikjjko3pj)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="173" x="285" y="197.3604"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="153" x="295" y="223.4043">没有对type类型做出要求</text><path d="M235,187.3604 L245,187.3604 C260,187.3604 260,216.9204 275,216.9204 L285,216.9204 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M68,128.2402 L78,128.2402 C93,128.2402 93,187.3604 108,187.3604 L118,187.3604 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><!--
+@startmindmap
+
+* action
+** 1. plain-object(平面对象)
+*** __proto__指向Object.prototype
+** 使用payload属相表示附加数据
+** 必须有type属性
+*** 操作类型
+*** 没有对type类型做出要求
+
+
+
+@endmindmap
+
+PlantUML version 1.2019.09(Tue Aug 27 00:19:51 CST 2019)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Java Version: 1.8.0_201-b09
+Operating System: Windows 10
+OS Version: 10.0
+Default Encoding: GBK
+Language: zh
+Country: CN
+--></g></svg>

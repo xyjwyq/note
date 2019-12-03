@@ -1,7 +1,17 @@
 import React from "react";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import Admin from "./pages/Admin";
+import Login from "./pages/Login";
 
 function App() {
-  return <div className="App">App</div>;
+  return (
+    <Router>
+      <Switch>
+        <Route path="/login" exact component={Login} />
+        <Route path="/" component={Admin} />
+      </Switch>
+    </Router>
+  );
 }
 
 export default App;

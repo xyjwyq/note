@@ -1,0 +1,13 @@
+@startmindmap
+
+* action
+** 1. plain-object(平面对象)
+*** __proto__指向Object.prototype
+** 2. 使用payload属相表示附加数据
+** 3. 必须有type属性
+*** 操作类型
+*** 没有对type类型做出要求
+
+
+
+@endmindmap

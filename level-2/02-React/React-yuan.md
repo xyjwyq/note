@@ -2461,18 +2461,206 @@ export default function TransitionRoute({ component: Component, ...rest }) {
 
 ### 核心概念
 
-1. MVC：它是一个 UI的解决方案，用于降低UI，以及UI关联的数据的复杂度 
-2. 传统的服务端MVC
-3. 前端MVC模式困难
-4. 前端独立数据解决方案
-   1. Flux
-   2. Redux
+MVC：它是一个 UI的解决方案，用于降低UI，以及UI关联的数据的复杂度 
+
+#### 传统的服务端MVC
+
+<img src="React-yuan.assets/image-20191203142208764.png" alt="image-20191203142208764" style="zoom:33%;" />
+
+环境：
+
+1. 服务端需要响应一个完成的HTML
+2. 该HTML包含页面需要的数据
+3. 浏览器仅承担渲染页面的作用
+
+以上这种方式叫做**服务端渲染**，即服务器端将完整的页面组装好之后，一起发送给客户端。
+
+服务器端渲染，需要处理UI中要用到的数据，并且要将数据嵌入到页面中，最终生成一个完整的HTML页面响应。
+
+为了降低处理这个过程的复杂度，出现了MVC模式
+
+<img src="React-yuan.assets/image-20191203143156092.png" alt="image-20191203143156092" style="zoom:33%;" />
+
+Controller：处理请求，组装这次请求需要的数据
+
+Model：需要用于UI渲染的数据模型
+
+view：视图，用于将模型组装到界面中
+
+#### 前端MVC模式困难
+
+React只解决了`model --> view`的问题，但其他的问题却难以得到解决：
+
+1. 前端的Controller要比服务器复杂很多，因为前端中的Controller处理的是用户的操作，而用户的操作场景是复杂的
+
+2. 对于组件化的框架（Vue、React），它们使用的是单向数据流。
+
+   若需要共享数据，则必须将数据提升到顶层组件，然后数据再一层一层传递，极其繁琐。
+
+   虽然可以使用上下文来提供共享数据，但对数据的操作难以监控，使得调试错误以及数据还原变得极其困难。
+
+   且，在一个大中型项目的开发中，共享的数据很多，会导致上下文中的数据变的非常复杂。
+
+#### 前端独立数据解决方案
+
+1. Flux
+
+   - Facebook提出的数据解决方案，它的最大历史意义，在于引入了action的概念
+   - action是一个普通的对象，用于描述要干什么
+   - `action`**是触发数据变化的唯一原因**
+   - `store`表示数据仓库，用于存储共享数据，还可以根据不同的action更改仓库中的数据
+
+   ```js
+   var loginAction = {
+       type: "login",
+       payload: {
+           loginId:"admin",
+           loginPwd:"123123"
+       }
+   }
+   
+   var deleteAction = {
+       type: "delete",
+       payload: 1  // 用户id为1
+   }
+   ```
+
+2. Redux
+
+   - 在Flux的基础上，引入了`reducer`的概念
+   - `reducer`：处理器，用于根据action来处理数据，处理后的数据会被仓库重新保存
+
+   <img src="React-yuan.assets/image-20191203145430426.png" alt="image-20191203145430426" style="zoom:33%;" />
 
 ### Redux管理数据
 
+```js
+import { createStore } from "redux";
+
+//假设仓库中仅存放了一个数字，该数字的变化可能是+1或-1
+//约定action的格式：{type:"操作类型", payload:附加数据}
+
+/**
+ * reducer本质上就是一个普通函数
+ * @param state 之前仓库中的状态（数据）
+ * @param action 描述要作什么的对象
+ */
+function reducer(state, action) {
+    //返回一个新的状态
+    if (action.type === "increase") {
+        return state + 1;
+    }
+    else if (action.type === "decrease") {
+        return state - 1;
+    }
+    return state;//如果是一个无效的操作类型，数据不变
+}
+
+window.store = createStore(reducer, 10);
+
+const action = {
+    type: "increase"
+}
+
+console.log(window.store.getState()); //得到仓库中当前的数据
+
+window.store.dispatch(action); //向仓库分发action
+
+console.log(window.store.getState()); //得到仓库中当前的数据
+```
+
 ### action
 
+![action](React-yuan.assets/action-1575357825881.svg)
+
+1. 在大型项目中，由于操作类型非常多，为了避免硬编码（hard code），会将action的类型存放到一个或一些单独的文件中（样板代码）
+
+   ```js
+   export const INCREASE = Symbol('increase');
+   export const DECREASE = Symbol('decrease');
+   export const SET = Symbol('set');
+   ```
+
+2. 为了方便传递action，通常会使用action创建函数（action creator）来创建action
+
+   action创建函数应为**无副作用的纯函数**
+
+   - 不能以任何形式改动参数
+   - 不可以有异步
+   - 不可以对外部环境中的数据造成影响
+
+   ```js
+   import * as actionTypes from "./action-type"
+   /**
+    * 得到一个用于增加数字操作的action
+    */
+   export function getIncreaseAction() {
+       return {
+           type: actionTypes.INCREASE
+       };
+   }
+   	
+   export function getSetAction(newNumber) {
+       return {
+           type: actionTypes.SET,
+           payload: newNumber
+       }
+   }
+   ```
+
+3. 为了方便利用action创建函数来分发（触发）action，redux提供了一个函数`bindActionCreator`，该函数用于增强action创建函数的功能，使它不仅可以创建action，并且创建后会自动完成分发
+
+   ```js
+   import { createStore, bindActionCreators } from "redux";
+   import * as numberActions from "./action/number-action";
+   
+   // ……此处省略reducer
+   
+   const store = createStore(reducer, 10);
+   const bindActions = bindActionCreators(numberActions, store.dispatch);
+   bindActions.createIncreaseAction(); // 可以直接调用方法生成action
+   ```
+
 ### reducer
+
+`Reducer`是用于改变是数据的函数
+
+1. 一个数据仓库中，有且仅有一个reducer
+
+   通常情况下，一个工程只有一个仓库
+
+   因此，一个系统中，只有一个reducer
+
+2. 为了方便管理，通常会将reducer放到单独的文件中
+
+3. reducer被调用的时机
+
+   1. 通过`store.dispatch`，分发一个action，此时，会调用reducer
+   2. 当创建一个store的时候，会调用一次reducer
+      - 可以利用这一点，用reducer初始化状态
+        - 创建仓库时，不传递任何默认状态
+        - 将reducer的参数state设置一个默认值
+
+4. reducer的内部通常使用switch来判断type值
+
+5. **reducer必须是一个没有副作用的纯函数**
+
+   为什么需要纯函数？
+
+   - 纯函数有利于测试和调试
+   - 有利于还原数据
+   - 有利于将来和React结合时优化
+
+   具体要求
+
+   - 不能改变参数，因此若要让状态变化，必须得到一个新的状态
+   - 不能有异步
+   - 不能对外部环境造成影响
+
+6. 由于在大中型项目中，操作比较复杂，数据结构也比较复杂，因此，需要对reducer进行细分
+
+   1. redux提供了方法，可以方便的合并reducer
+   2. `combineReducers`：合并Reducer，得到一个新的Reducer，新的reducer管理一个对象，该对象中的每一个个属性交给对应的reducer管理
 
 ### store
 

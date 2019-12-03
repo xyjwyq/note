@@ -1,0 +1,45 @@
+.container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.container .header {
+    width: 100%;
+    height: 60px;
+    background: burlywood;
+    box-sizing: border-box;
+}
+
+
+.container .middle {
+    position: absolute;
+    width: 100%;
+    overflow: hidden;
+    left: 0;
+    top: 60px;
+    bottom: 0;
+}
+
+.container .middle .aside {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200px;
+    height: 100%;
+    background: #008c8c;
+    overflow: auto;
+}
+
+.container .middle .main {
+    position: absolute;
+    padding: 20px;
+    left: 200px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: auto;
+}
