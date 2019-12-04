@@ -2664,9 +2664,96 @@ console.log(window.store.getState()); //得到仓库中当前的数据
 
 ### store
 
+`store`用于保存数据
+
+通过`createStore`方法创建对象
+
+该对象的成员
+
+- `dispatch`：分发action
+- `getState`：得到仓库中当前的状态
+- `replaceReducer`：替换当前的Reducer
+- `subscribe`：注册一个监听器，监听器是一个无参函数
+  - 函数运行时间点：在分发一个action之后，会运行注册的监听器，
+  - 函数返回值：返回一个函数，用于取消监听
+
 ### Redux中间件
 
+1. **中间件**：类似于插件，可以在不影响原本功能、不改动原本代码的基础上，对其功能进行增强
 
+   **在Resux中，中间件主要用于增强dispatch函数**
+
+2. 实现Redux中间件的基本原理：是更改仓库中的dispatch函数
+
+3. Redux中间件的书写：
+
+   - 中间件本身是一个函数，该函数接受一个store参数，表示创建的仓库，该仓库并非一个完整的仓库对象，仅包含getState、dispath。
+
+     函数运行时间点，是在仓库创建之后运行
+
+     - 由于创建仓库后需要自动运行设置的中间件函数，因此，需要在创建仓库时，告诉仓库有哪些中间件
+     - 需要调用1`applyMiddleware`函数，将函数的返回结果作为createStore的第二或第三个参数
+
+   - 中间件函数必须返回一个dispatch创建函数
+
+   - `applyMiddleware`函数，用于记录有哪些中间件，它会返回一个函数
+
+     - 该函数用于记录创建仓库的方法，然后又返回一个函数
+
+     ```js
+     // applyMiddleware调用方式
+     
+     // 方式1
+     const store = createStore(reducer, applyMiddleware(logger1, logger2));
+     // 方式2
+     const store = applyMiddleware(logger1, logger2, ……)(createStore)(reducer);
+     ```
+
+4. 补充
+
+   Redux中间件的本质：是得到一个dispatch，用于覆盖原有仓库中的dispatch，以增强功能
+
+   ```js
+   // 中间件的标准书写格式
+   // 函数的最外面一层是为了确保每个中间件可以使用原始的store中的dispatch和getState
+   function middleware(store) {
+       return funciton (nextDispatch) {
+           return function dispatch(action) {
+               // …… 真正用于增强功能的dispatch代码
+           }
+       }
+   }
+   
+   // 简写形式
+   const middleware = store => next => action => {
+       // ……
+   }
+   ```
+
+   <img src="React-yuan.assets/image-20191204164452032.png" alt="image-20191204164452032" style="zoom:50%;" />
+
+   applyMiddleware中，逆序执行中间件函数的原因，是为了将各个中间件函数执行返回的dispatch往前传递，这样，在执行最后得到的store.dispatch时，能保证中间件的执行顺序从前往后执行
+
+   ```js
+   // 加入中间之后，最后得到的store.dispatch
+   store.dispatch = (action) => {
+       // 中间件1开始
+       mid1-dispatch(action);
+       	// 中间件2开始
+       	mid2-dispatch(action);
+       		// ……
+      		// 中间件2结束
+       // 中间件1结束
+   }
+   ```
+
+## Redux中间件
+
+## 组件、路由、数据
+
+## umijs
+
+## antDesign
 
 
 
