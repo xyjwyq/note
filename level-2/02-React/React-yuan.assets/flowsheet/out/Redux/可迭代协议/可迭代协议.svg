@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentScriptType="application/ecmascript" contentStyleType="text/css" height="129px" preserveAspectRatio="none" style="width:648px;height:129px;" version="1.1" viewBox="0 0 648 129" width="648px" zoomAndPan="magnify"><defs><filter height="300%" id="fyq6te593jq1b" width="300%" x="-1" y="-1"><feGaussianBlur result="blurOut" stdDeviation="2.0"/><feColorMatrix in="blurOut" result="blurOut2" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .4 0"/><feOffset dx="4.0" dy="4.0" in="blurOut2" result="blurOut3"/><feBlend in="SourceGraphic" in2="blurOut3" mode="normal"/></filter></defs><g><rect fill="#FEFECE" filter="url(#fyq6te593jq1b)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="118" x="10" y="49.5601"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="98" x="20" y="75.604">可迭代协议条件</text><rect fill="#FEFECE" filter="url(#fyq6te593jq1b)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="76" x="178" y="49.5601"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="56" x="188" y="75.604">约束对象</text><rect fill="#FEFECE" filter="url(#fyq6te593jq1b)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="165" x="304" y="49.5601"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="145" x="314" y="75.604">有[Symbol.iterator]属性</text><rect fill="#FEFECE" filter="url(#fyq6te593jq1b)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="48" x="519" y="20"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="28" x="529" y="46.0439">无参</text><path d="M469,69.1201 L479,69.1201 C494,69.1201 494,39.5601 509,39.5601 L519,39.5601 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><rect fill="#FEFECE" filter="url(#fyq6te593jq1b)" height="39.1201" rx="12.5" ry="12.5" style="stroke: #A80036; stroke-width: 1.5;" width="118" x="519" y="79.1201"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacingAndGlyphs" textLength="98" x="529" y="105.1641">迭代器创建函数</text><path d="M469,69.1201 L479,69.1201 C494,69.1201 494,98.6802 509,98.6802 L519,98.6802 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M254,69.1201 L264,69.1201 C279,69.1201 279,69.1201 294,69.1201 L304,69.1201 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><path d="M128,69.1201 L138,69.1201 C153,69.1201 153,69.1201 168,69.1201 L178,69.1201 " fill="none" style="stroke: #A80036; stroke-width: 1.0;"/><!--
+@startmindmap
+
+* 可迭代协议条件
+** 约束对象
+*** 有[Symbol.iterator]属性
+**** 无参
+**** 迭代器创建函数
+
+@endmindmap
+
+PlantUML version 1.2019.09(Tue Aug 27 00:19:51 CST 2019)
+(GPL source distribution)
+Java Runtime: Java(TM) SE Runtime Environment
+JVM: Java HotSpot(TM) 64-Bit Server VM
+Java Version: 1.8.0_201-b09
+Operating System: Windows 10
+OS Version: 10.0
+Default Encoding: GBK
+Language: zh
+Country: CN
+--></g></svg>

@@ -1,0 +1,9 @@
+@startmindmap
+
+* 可迭代协议条件
+** 约束对象
+*** 有[Symbol.iterator]属性
+**** 无参
+**** 迭代器创建函数
+
+@endmindmap

@@ -1,0 +1,14 @@
+@startmindmap
+
+* 迭代器
+** 对象
+** 具有**next**方法
+*** 返回一个对象，对象中至少包含
+**** value
+***** any类型
+***** 下一个数据的值
+***** done为true时，通常其为undefined
+**** done
+***** bool类型
+***** 指示迭代是否已经完成
+@endmindmap

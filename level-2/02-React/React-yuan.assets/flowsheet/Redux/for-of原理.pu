@@ -1,0 +1,15 @@
+@startuml
+
+start
+
+: 运行可迭代对象的[Symbol.iterator]方法;
+: 得到迭代器(iterator);
+: const next = iterator.next();
+while(!next.done?)
+    : 将next.value赋值给变量;
+    : 进入for-of循环体执行一次;
+    : next = iterator.next();
+endwhile;
+stop
+
+@enduml 

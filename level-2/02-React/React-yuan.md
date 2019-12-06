@@ -2716,6 +2716,7 @@ console.log(window.store.getState()); //得到仓库中当前的数据
    ```js
    // 中间件的标准书写格式
    // 函数的最外面一层是为了确保每个中间件可以使用原始的store中的dispatch和getState
+   // 纠正：源码中，最外层store中的dispatch函数，指向最终生成的dispatch，而非原始store中最初的dispatch
    function middleware(store) {
        return funciton (nextDispatch) {
            return function dispatch(action) {
@@ -2728,12 +2729,12 @@ console.log(window.store.getState()); //得到仓库中当前的数据
    const middleware = store => next => action => {
        // ……
    }
-   ```
-
-   <img src="React-yuan.assets/image-20191204164452032.png" alt="image-20191204164452032" style="zoom:50%;" />
-
-   applyMiddleware中，逆序执行中间件函数的原因，是为了将各个中间件函数执行返回的dispatch往前传递，这样，在执行最后得到的store.dispatch时，能保证中间件的执行顺序从前往后执行
-
+```
+   
+<img src="React-yuan.assets/image-20191204164452032.png" alt="image-20191204164452032" style="zoom:50%;" />
+   
+applyMiddleware中，逆序执行中间件函数的原因，是为了将各个中间件函数执行返回的dispatch往前传递，这样，在执行最后得到的store.dispatch时，能保证中间件的执行顺序从前往后执行
+   
    ```js
    // 加入中间之后，最后得到的store.dispatch
    store.dispatch = (action) => {
@@ -2749,7 +2750,147 @@ console.log(window.store.getState()); //得到仓库中当前的数据
 
 ## Redux中间件
 
+### redux-logger
+
+redux日志中间件
+
+```js
+// 方式1
+import { applyMiddleware, createStore } from 'redux';
+ 
+// Logger with default options
+import logger from 'redux-logger'
+const store = createStore(
+  reducer,
+  applyMiddleware(logger)
+)
+
+// 方式2
+import { applyMiddleware, createStore } from 'redux';
+import { createLogger } from 'redux-logger'
+ 
+const logger = createLogger({
+  // ...options
+});
+ 
+const store = createStore(
+  reducer,
+  applyMiddleware(logger)
+);
+```
+
+### redux-thunk
+
+thunk允许action是一个带有副租用的函数，当action是一个函数分支时，thunk会阻止action继续向后移交
+
+thunk会向函数中传递三个参数：
+
+- dispatch：来自于store.dispatch
+- getState：来自于store.getState
+- extra：来自于用户设置的额外参数
+
+<img src="React-yuan.assets/image-20191205160718622.png" alt="image-20191205160718622" style="zoom:45%;" />
+
+### redux-promise
+
+如果action是一个promise，则会等待promise完成，将完成的结果作为action触发；
+
+如果不是一个promise，则判断其payload是否是一个promise，如果是，则等待promise完成，然后将得到的结果作为payload的值触发
+
+### 迭代器和迭代协议
+
+解决副作用的redux中间件：
+
+1. `redux-thunk`：需要改动action，可接收action是一个函数
+2. `redux-promise`：需要改动action，可接收action是一个promise对象，或action的payload是一个promise对象
+
+以上两个中间件，会导致action或者action创建函数不再纯净
+
+3. `reduc-saga`：将解决上述问题，它不仅可以保持action、action创建函数、reducer的纯净，而且可以**用模块化的方式解决副作用**，并且功能非常强大。
+
+   redux-saga，是建立在ES6基础的生成器基础上的，要熟练的使用saga，必须理解生成器。
+
+   要理解生成器，必须先理解迭代器和可迭代协议
+
+#### 迭代
+
+迭代类似于遍历
+
+- 遍历：指有多个数据组成的集合数据结构（map、set、array等其他类数组），需要从该结构中依次取出数据进行某种处理（在所有数据已知并存储在一个集合的情况下）
+- 迭代：按照某种逻辑，依次取出下一个数据进行处理（只知道当前数据，后面数据根据某种逻辑具体生成）
+
+#### 迭代器（iterator）
+
+![iterator](React-yuan.assets/iterator-1575618849282.svg)
+
+1. JS语言规定，如果一个对象具有next方法，并且next方法满足一定的约束，则该对象是一个迭代器
+2. next方法的约束：该方法必须返回一个对象，该对象至少具有两个属性：
+   - value：any类型，下一个数据的值；当done为true时，通常会将value设置为undefined
+   - done：bool类型，是否已经迭代完成
+3. 通常迭代器的next方法，可以依次取出数据，并可以根据返回的done属性，判断是否迭代结束
+
+#### 迭代器创建函数
+
+是指一个函数，被调用后，返回一个迭代器，则该函数称之为迭代器创建函数，可以简称为迭代器函数
+
+#### 可迭代协议
+
+![可迭代协议](React-yuan.assets/%E5%8F%AF%E8%BF%AD%E4%BB%A3%E5%8D%8F%E8%AE%AE-1575621954885.svg)
+
+1. 由于ES6中出现了`for-of`循环，该循环的作用是用于迭代某个对象的，因此，`for-of`循环要求对象必须是可迭代的（对象必须满足可迭代协议）
+2. 可迭代协议：是用于**约束一个对象**，如果一个对象满足下面的规范，则该对象满足可迭代协议，也称之为该对象是可以被迭代的
+   1. 对象必须有一个知名符号属性（Symbol.iterator）
+   2. 该属性必须是一个无参的迭代器创建函数
+
+#### for-of循环原理
+
+![for-of原理](React-yuan.assets/for-of%E5%8E%9F%E7%90%86.svg)
+
+1. 调用可迭代对象（即满足可迭代协议）的[Symbol.iterator]方法，得到一个迭代器
+2. 不断调用next方法，当返回的done为false时，将返回的value传递给变量
+3. 进入循环体执行一次
+
+### 生成器
+
+#### generator
+
+![generator](React-yuan.assets/generator-1575623775525.svg)
+
+生成器：由构造函数Generator创建的对象，该对象既是一个迭代器，同时，又是一个可迭代对象（满足可迭代协议的对象）
+
+```js
+//伪代码
+
+var generator = new Generator();
+generator.next();//它具有next方法
+var iterator = generator[Symbol.iterator];//它也是一个可迭代对象
+for(const item of generator){
+    //由于它是一个可迭代对象，因此也可以使用for of循环
+}
+```
+
+**注意：Generator构造函数，不提供给开发者使用，仅为JS引擎内部使用**
+
+#### generator function
+
+1. 生成器函数（生成器创建函数）：该函数用于创建一个生成器
+2. ES6新增了一个特殊的函数，叫做生成器函数，只要在函数名与function关键字之间加上一个*号，则该函数执行后返回一个生成器
+3. **生成器函数**的特点：
+   1. 调用生成器函数：会返回一个生成器，而不是执行函数体（因为，生成器函数的函数体执行，受到生成器控制）
+
+### saga
+
+### redux-actions
+
 ## 组件、路由、数据
+
+### react-redux
+
+### redux和router
+
+### dva
+
+### dva插件
 
 ## umijs
 

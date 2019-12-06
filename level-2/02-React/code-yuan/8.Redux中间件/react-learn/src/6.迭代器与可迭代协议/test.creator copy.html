@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+        function iteratorCreator(total = 3) {
+            let i = 0;
+            return {
+               next() {
+                   return {
+                       value: i++ > total ? undefined : Math.random(),
+                       done: i > total
+                   }
+               }
+            }
+        }
+
+        const iterator = iteratorCreator(10);
+        let next = iterator.next();
+        while(!next.done) {
+            console.log(next.value);
+            next = iterator.next();
+        }
+    
+    </script>
+  </body>
+</html>

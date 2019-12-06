@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      //要输出斐波拉契数列的前N位
+
+      //一个无限的斐波拉契数列 1 1 2 3 5 8 13 21
+      const iterator = {
+        first: 1,
+        second: 1,
+        index: 1,
+        next() {
+          if (this.index === 1 || this.index === 2) {
+            this.index++;
+            return {
+              value: 1,
+              done: false
+            };
+          }
+          let val = this.first + this.second;
+          this.first = this.second;
+          this.second = val;
+          this.index++;
+          return {
+            value: val,
+            done: false
+          };
+        }
+      };
+
+      for (let i = 0; i < 100; i++) {
+        console.log(iterator.next().value);
+      }
+    </script>
+  </body>
+</html>

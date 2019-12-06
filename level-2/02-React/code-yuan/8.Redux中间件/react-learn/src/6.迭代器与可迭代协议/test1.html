@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 迭代器
+      const iterator = {
+        i: 1,
+        total: 3,
+        next() {
+          var obj = {
+            value: this.i > this.total ? undefined : Math.random(),
+            done: this.i > this.total
+          };
+          this.i++;
+          return obj;
+        }
+      };
+
+      let next = iterator.next();
+      while(!next.done) {
+          console.log(next.value);
+          next = iterator.next();
+      }
+    </script>
+  </body>
+</html>
