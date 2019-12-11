@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function* createGenerator() {
+        console.log("生成器函数的函数体 - 开始");
+        let result = yield 1;
+        console.log("生成器函数的函数体 - 1", result);
+        result = yield 2;
+        console.log("生成器函数的函数体 - 2", result);
+        result = yield 3;
+        console.log("生成器函数的函数体 - 3", result);
+        return "结束";
+      }
+
+      const generator = createGenerator();
+
+      let res = generator.next();
+      while(!res.done) {
+          res = generator.next(res.value);
+      }
+    </script>
+  </body>
+</html>

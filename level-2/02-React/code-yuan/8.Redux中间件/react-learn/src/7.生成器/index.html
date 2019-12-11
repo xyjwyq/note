@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function* g2() {
+        console.log("g2-开始");
+        let result = yield "g1";
+        console.log("g2-运行1",result);
+        result = yield "g2";
+        return result;
+      }
+
+      function* createGenerator() {
+        console.log("生成器函数的函数体 - 开始");
+        let result = yield 1; //将1作为第一次的迭代的值
+        console.log("生成器函数的函数体 - 运行1", result);
+        result = yield* g2(); //将2作为第二次迭代的值
+        console.log("生成器函数的函数体 - 运行2", result);
+        result = yield 3;
+        console.log("生成器函数的函数体 - 运行3", result);
+        return "结束";
+      }
+
+      const generator = createGenerator();
+      let res = generator.next();
+      while(!res.done) {
+        res = generator.next(res.value);
+      }
+    </script>
+  </body>
+</html>

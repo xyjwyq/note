@@ -2729,6 +2729,7 @@ console.log(window.store.getState()); //得到仓库中当前的数据
    const middleware = store => next => action => {
        // ……
    }
+   ```
 ```
    
 <img src="React-yuan.assets/image-20191204164452032.png" alt="image-20191204164452032" style="zoom:50%;" />
@@ -2746,7 +2747,7 @@ applyMiddleware中，逆序执行中间件函数的原因，是为了将各个�
       		// 中间件2结束
        // 中间件1结束
    }
-   ```
+```
 
 ## Redux中间件
 
@@ -2876,11 +2877,305 @@ for(const item of generator){
 1. 生成器函数（生成器创建函数）：该函数用于创建一个生成器
 2. ES6新增了一个特殊的函数，叫做生成器函数，只要在函数名与function关键字之间加上一个*号，则该函数执行后返回一个生成器
 3. **生成器函数**的特点：
+   
    1. 调用生成器函数：会返回一个生成器，而不是执行函数体（因为，生成器函数的函数体执行，受到生成器控制）
+   
+   2. 每当调用了生成器的`next`方法，生成器的函数体会从上一次`yield`的位置（或开始位置）运行到下一个`yield`
+   
+      - `yield`关键字只能在生成器内部使用，不可以在普通函数内部使用
+      - 它表示暂停，并返回一个当前迭代的数据
+      - 如果没有下一个`yield`，到了函数结束，则生成器的`next`方法得到的结果中的`done`为`true`
+   
+   3. `yield`关键字后面的表达式返回的数据，会作为当前迭代的数据
+   
+   4. 生成器函数的返回值，会作为迭代结束时的value
+   
+      但是，如果在结束过后，仍然反复调用next，则value为undefined（函数如果没有return则返回undefined）
+   
+   5. 生成器调用next的时候，可以传递参数，**该参数会作为生成器函数体上一次yield表达式的值**
+   
+      **生成器第一次调用next函数时，传递参数没有任何意义**
+   
+   6. 生成器带有一个throw方法，该方法与next的效果相同，唯一的区别在于：
+   
+      - next方法传递的参数会被返回成一个正常值
+   
+      - throw方法传递的参数是一个错误对象，会导致生成器函数内部发生一个错误；
+   
+        在没有调用一次next方法的情况下，直接调用throw方法时，使用`try……catch`不能直接捕获到错误，而是将错误直接抛出
+   
+   7. 生成器带有一个return方法，该方法会直接结束生成器函数
+   
+   8. 若需要在生成器内部调用其他生成器，注意：
+   
+      如果直接调用，得到的是一个生成器；
+   
+      如果加入*号调用，则进入其生成器内部执行；
+   
+      如果是`yield* 函数()`调用生成器函数，则**该函数的返回结果，为该表达式的结果**；
 
-### saga
+### redux-saga
+
+> 中文文档地址：https://redux-saga-in-chinese.js.org/
+
+<img src="React-yuan.assets/image-20191209175442319.png" alt="image-20191209175442319" style="zoom:33%;" />
+
+1. redux-sage的特性：
+
+   - 灵活
+   - 纯净
+   - 强大
+
+2. saga对于副作用的处理，是将所有的副作用处理，分模块的写在相应的saga任务文件中，而reducer、action中不处理任何副作用相关的事情，而保持它们的纯净
+
+3. 在saga任务中，如果yield了一个普通数据，saga不做任何处理，仅仅将数据传递给yield表达式（把得到的数据放到next的参数中），因此，在saga任务中，yield一个普通数据没有任何意义
+
+4. saga需要在yield后面放上一些合适的saga指令（saga effexcts），如果放的是指令，saga中间件会根据不同的指令进行特殊处理，以控制整个任务流程
+
+5. 每个指令，本质上就是一个函数，该函数调用后，会返回一个指令对象，saga会接收到该指令对象，进行各种处理
+
+6. sag任务是一个生成器函数；saga中有且仅有一个人任务（即sagaMind.run(rootSga)中，rootSaga是唯一的任务）；
+
+7. 当saga发现得到的结果是一个Promise对象，它会自动等待该Promise完成
+
+    完成之后，会把完成的结果作为值传递到下一次next
+
+    如果Promise对象被拒绝，saga会使用generator.throw抛出一个错误
+
+8. **一旦saga任务完成（生成器函数运行完成），则saga中间件一定结束**
+
+9. **指令前面必须使用yield，以确保该指令的返回结果被saga控制**
+
+   - `take`指令：【阻塞】监听某个action，如果action发生了，则会进行下一步处理，该指令仅监听一次
+
+     yield得到的是完整的action对象
+
+   - `all`指令：【阻塞】该函数传入一个数组，数组中放入**生成器（而非生成器函数）**，saga会等待所有的生成器全部完成后才会进一步处理
+
+   - `takeEvery`指令：不断的监听某个action，当这个action到达之后，运行一个函数（该函数通常为生成器函数，因为若不是生成器函数则无法使用yield，无法使用指令；该函数可以是普通函数）（即，可以同时监听多个action）。
+
+     takeEvery永远不会结束当前的生成器
+     
+   - `delay`指令：【阻塞】阻塞指定的毫秒数
+
+   - `put`指令：用于重新触发action，相当于dispatch一个action
+
+   - `call`指令：【可能阻塞】用于副作用（通常是异步）函数调用
+
+   - `apply`指令：【可能阻塞】用于副作用（通常是异步）函数调用
+
+   - `select`指令：用于得到当前仓库中的数据
+
+   - `cps`指令：【可能阻塞】用于调用那些传统的回调方式的异步函数
+
+   - `fork`指令：用于开启一个新任务， 该任务不会阻塞；
+
+     该函数需要传递一个生成器函数
+
+     fork返回了一个对象，类型为Task
+
+     ```js
+     // takeEvery实现原理
+     function takeEvery(actionType, sagaEffects) {
+         return fork(function* () {
+             // 利用take监控actionType，当actionType不匹配时，会进行阻塞，不再往下继续裕兴
+             // 当actionType匹配时，则往下运行
+     		const action = yield take(actionType);
+             fork(sagaEffects);
+         });
+     }
+     ```
+
+   - `cancel`指令：用于取消一个或多个任务，实际上，取消的实现原理，是利用`generator.return`
+
+     cancel可以不传递参数，如果不传递任何参数，则**取消当前任务线**
+
+   - `takeLastest`指令：功能与takeEvery一致，只不过，会自动取消之前之前开启的任务
+
+   - `cancelled`：判断当前任务线是否被取消
+
+   - `race`指令：【阻塞】，可以传递多个指令，当其中一个指令结束后，会直接结束，与`Promise.race`类似，返回的解惑，是最先完成的指令结果，并且，该函数会自动取消其他任务
+   
+10. saga流程管理：利用take的阻塞原理，将固定流程按照顺序依次书写（take监听actionType，然后书写该类型处理程序）
+
+    ```js
+    import { fork, take, delay, put, cancel, cancelled } from "redux-saga/effects"
+    import { actionTypes, increase } from "../action/counter"
+    
+    /**
+     * 自动增加和停止的流程控制
+     * 流程：自动增加 -> 停止 -> 自动增加 -> 停止
+     */
+    function* autoTask() {
+        while (true) {
+            yield take(actionTypes.autoIncrease); //只监听autoIncrease
+            const task = yield fork(function* () {
+                try {
+                    while (true) {
+                        yield delay(2000);
+                        yield put(increase());
+                    }
+                }
+                finally {
+                    if (yield cancelled()) {
+                        console.log("自动增加任务被取消掉了！！！")
+                    }
+                }
+            })
+            yield take(actionTypes.stopAutoIncrease); //转而监听stopAutoIncrease
+            yield cancel(task);
+        }
+    }
+    
+    export default function* () {
+        yield fork(autoTask);
+        console.log("正在监听autoIncrease")
+    }
+    ```
+
+```js
+import { createStore, applyMiddleware } from "redux";
+import reducer from "./reducer";
+import createSagaMiddleware from 'redux-saga'
+import { createLogger } from "redux-logger";
+// rootSaga是saga任务，saga中只能有一个任务，该任务是一个生成器函数
+import rootSage from './saga'; 
+
+// rootSaga伪代码
+//function* rootSaga() {
+//    yield all([生成器1, 生成器2, ……]);
+//}
+
+const sagaMid = createSagaMiddleware(); // 创建一个saga中间件
+
+const logger = createLogger({
+  collapsed: true,
+  duration: true
+});
+
+const store =  createStore(reducer, applyMiddleware(sagaMid, logger));
+
+sagaMid.run(rootSage); // 启动saga任务
+
+export default store;
+```
 
 ### redux-actions
+
+> 官网文档：https://redux-actions.js.org/
+
+react-actions库：主要用于简化action-types、action-creator以及reducer
+
+**createAction(s)**
+
+1. `createAction`：该函数用于帮助创建一个action创建函数（action creator）
+
+   ```js
+   // createAction(type, payloadCreator, metaCreator)
+   import { createAction } from 'redux-actions'
+   
+   export const actionTypes = {
+     increase: "INCREASE"
+   };
+   // 调用createAction，返回一个action创建函数
+   export const createIncreaseAction = createAction(actionTypes.increase);
+   ```
+
+2. `createActions`：该函数用于帮助创建多个action创建函数
+
+   ```js
+   // createActions(actionMap[, options])
+   // createActions(actionMap, ...identityActions[, options])
+   
+   import { createActions } from 'redux-actions'
+   
+   export const actionTypes = {
+     increase: "INCREASE",
+     decrease: "DECREASE",
+     add: "ADD"
+   };
+   
+   export const {
+     increase,
+     decrease,
+     add
+   } = createActions({
+     INCREASE: null,
+     DECREASE: null,
+     // ADD: number => number
+     ADD: [
+         number => number,
+         () => ({ isAdmin:true })
+     ]
+   });
+   // return:
+   // {
+   //   increase: fn, => fn.toString() = INCREASE
+   //   decrease: fn, => fn.toString() = DECREASE
+   //   add: fn => fn.toSString() = ADD
+   // }
+   ```
+
+**handleAction(s)**
+
+1. `handleAction`：简化针对单个action类型的reducer处理，当它匹配到对应的action类型后，会执行对应的函数
+
+   ```js
+   // handleAction( type, reducer | reducerMap = Identity,  defaultState)
+   ```
+
+2. `handleActions`：简化真多多个action类型的reducer处理
+
+   ```js
+   import { createActions, handleActions } from 'redux-actions'
+   
+   export const { change } = createActions({
+       CHANGE: newCondition => newCondition
+   });
+   
+   export default handleActions({
+           [change]: (state, {payload}) => ({
+               ...state, 
+               ...payload
+           })
+       }, {
+           key: '',
+           sex: -1,
+           limit: 10,
+           page: 1
+   });
+   ```
+
+**combineActions**
+
+配合createActions和handleActions两个函数，用于处理多个action-type对应同一个reducer处理函数
+
+```js
+import { createActions, handleActions, combineActions } from "redux-actions";
+
+export const { setResult, setLoading, fetchStudents } = createActions({
+  SET_RESULT: (arr, total) => ({
+    datas: arr,
+    total
+  }),
+  SET_LOADING: isLoading => isLoading,
+  FETCH_STUDENTS: null
+});
+
+export default handleActions(
+  {
+    [combineActions(setResult, setLoading)]: (state, { payload }) => ({
+      ...state,
+      ...payload
+    })
+  },
+  {
+    isLoading: false,
+    total: 0,
+    datas: []
+  }
+);
+```
 
 ## 组件、路由、数据
 

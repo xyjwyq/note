@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function asyncData() {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            resolve("成哥");
+          }, 1000);
+        });
+      }
+
+      function* task() {
+        console.log("开始获取数据....");
+        let data = yield asyncData();
+        console.log("获取到数据：", data);
+        let data1 = yield asyncData();
+        console.log("获取到数据：", data1);
+        let data2 = yield 1;
+        console.log("获取到数据：", data2);
+      }
+
+      function run(generatorFunction) {
+        const generator = generatorFunction();
+        next();
+
+        function next(nextValue) {
+          let res = generator.next(nextValue);
+          if (res.done) {
+            return;
+          }
+          if (typeof res.value.then === "function") {
+            res.value.then(val => {
+              next(val);
+            });
+          } else {
+            next(res.value);
+          }
+        }
+      }
+
+      run(task);
+    </script>
+  </body>
+</html>
