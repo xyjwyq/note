@@ -3179,13 +3179,365 @@ export default handleActions(
 
 ## 组件、路由、数据
 
+**Redux全家桶：**
+
+- `React`：组件化的UI界面处理方案
+- `React-Router`：根据地址匹配路由，最终渲染不同的的组件
+- `Redux`：处理数据以及数据变化的方案（主要用于处理共享数据）
+
+> **展示组件**：如果一个组件 ，仅用于渲染一个UI界面，而没有装填（通常是一个函数组件），该组件叫做展示组件
+>
+> **容器组件**：如果一个组件仅用于提供数据，没有任何属于属于自己的UI界面，则该组件叫做容器组件；
+>
+> 容器组件纯粹是为了给其他组件提供数据
+
 ### react-redux
+
+1. `react-redux`：链接redux和react
+
+   - `Provider`组件：没有任何UI界面，该组件的作用，是将redux仓库放到一个上下文中
+
+   - `connect`组件：高阶组件，用于链接仓库和组件的
+
+     该组件存在两个参数：
+
+     1. 参数1：`mapStateToProps`
+        1. 参数1：真个仓库的状态
+        2. 参数2：使用者传递的属性对象
+     2. 参数2：
+        1. 情况1：传递一个函数`mapDispatchToProps`
+           1. 参数1：dispatch函数
+           2. 参数2：使用者传递的属性对象
+           3. 函数返回的对象会作为属性传递到展示组件中（作为事件处理函数存在）
+        2. 情况2：传递一个对象，对象的每个属性是一个action创建函数，当事件触发时，会自动的dispatch函数返回的action
+
+     **细节**
+
+     1. 细节1：如果对返回的容器组件加上额外属性，则这些属性会直接传递到展示组件
+
+     2. 细节2：如果不传递第二个参数，通过connect连接的组件，会自动得到一个属性：dispatch，使得组件有能力自行触发action（不推荐如此做）
+
+     ```react
+     import React from "react";
+     import { connect } from "react-redux";
+     import {
+       increase,
+       decrease,
+       asyncIncrease,
+       asyncDecrease
+     } from "../store/action/counter";
+     
+     function Counter(props) {
+       return (
+         <div>
+           <h1>{props.number}</h1>
+           <p>
+             <button onClick={props.onAsyncDecrease}> 异步减 </button>
+             <button onClick={props.onDecrease}> 减 </button>
+             <button onClick={props.onIncrease}> 加 </button>
+             <button onClick={props.onAsyncIncrease}> 异步加 </button>
+           </p>
+         </div>
+       );
+     }
+     
+     function mapStateToProps(state) {
+       return {
+         number: state.counter
+       };
+     }
+     
+     function mapDispatchToProps(dispatch) {
+       return {
+         onAsyncIncrease() {
+           dispatch(asyncIncrease());
+         },
+         onAsyncDecrease() {
+           dispatch(asyncDecrease());
+         },
+         onIncrease() {
+           dispatch(increase());
+         },
+         onDecrease() {
+           dispatch(decrease());
+         }
+       };
+     }
+     
+     export default connect(mapStateToProps, mapDispatchToProps)(Counter);
+     ```
 
 ### redux和router
 
+**redux调试工具**
+
+1. 安装chrome插件：`redux-devtools`
+
+2. 使用npm安装第三方库：`redux-devtools-extension`
+
+3. 配置仓库
+
+   ```js
+   // 用于创建仓库，并导出
+   import { createStore, applyMiddleware } from "redux"
+   import reducer from "./reducer"
+   import logger from "redux-logger"
+   import createSagaMiddleware from "redux-saga"
+   import rootSaga from "./saga"
+   import { composeWithDevTools } from "redux-devtools-extension"
+   
+   const sagaMid = createSagaMiddleware(); //创建一个saga的中间件
+   
+   const store = createStore(reducer,
+       composeWithDevTools(applyMiddleware(routerMid, sagaMid, logger))
+   )
+   
+   sagaMid.run(rootSaga); //启动saga任务
+   
+   export default store;
+   ```
+
+**redux与router的结合（connected-react-router）**
+
+1. 用于将redux与react-router进行结合；本质上，router中的某些数据可能会跟数据仓库中的数据进行联动；
+
+2. 该组件会将下面的路由数据和仓库保持同步
+
+   - action：它不是redux的action，它表示当前路由跳转的方式（PUSH、POP、REPLACE）
+   - location：它记录了当前的地址信息
+
+3. 该库中的内容
+
+   **connectRouter**
+
+   - 函数
+   - 该函数需要传递一个参数，参数是一个history对象；该对象，可以使用第三方库history得到
+   - 返回一个用于管理仓库中路由信息的reducer
+
+   **routerMiddleware**
+
+   - 该函数会返回一个redux中间件，用于拦截一些特殊的action
+
+   **ConnectRouter**
+
+   - 组件
+   - 用于向上下文提供一个history对象和其他的路由信息（与react-router提供的信息一致）
+   - 之所以需要新制作一个组件，是因为该库必须保证整个过程使用的是同一个history对象
+
+4. 一些action创建函数
+
+   connnected-react-router中提供了push和replace方法，这些方法是acton creatror，传入跳转路径之后，返回一个action
+   
+   - push
+   - replace
+
+```react
+// connected-react-router使用步骤
+// 1. 使用第三方库创建一个browserHistory对象
+// 2. 合并reducer
+// 2. 在store中添加router中间件
+// 3. 使用ConnectRouter组件代替Router组件
+
+// history
+import { createBrowserHistory } from 'history'
+export default createBrowserHistory();
+
+// reducer --> index.js
+import {combineReducers} from 'redux'
+import students from './students'
+import counter from './counter'
+import {connectRouter} from 'connected-react-router'
+import history from '../history'
+
+export default combineReducers({
+    students,
+    counter,
+    router: connectRouter(history)
+});
+
+// store
+import { createStore, applyMiddleware } from "redux";
+import reducer from "./action";
+import rootSaga from "./saga";
+import { createLogger } from "redux-logger";
+import createSagaMiddleware from "redux-saga";
+import { composeWithDevTools } from "redux-devtools-extension";
+import { routerMiddleware } from "connected-react-router";
+import history from "./history";
+
+const logger = createLogger({
+  collapsed: true,
+  duration: true
+});
+const sagaMiddleware = createSagaMiddleware();
+const routerMid = routerMiddleware(history); // 创建routerMid
+const store = createStore(
+  reducer,
+  composeWithDevTools(applyMiddleware(sagaMiddleware, routerMid, logger))
+);
+sagaMiddleware.run(rootSaga);
+export default store;
+
+// 使用ConnectRouter组件替代Router
+function App() {
+  return (
+    <Provider store={store}>
+      <ConnectedRouter history={history}>
+        <Switch>
+          <Route path="/login" exact component={Login} />
+          <Route path="/" component={Admin} />
+        </Switch>
+      </ConnectedRouter>
+    </Provider>
+  );
+}
+```
+
 ### dva
 
+> 官方网站：[https://dvajs.com](https://dvajs.com/)
+>
+> dva不仅仅是一个第三方库，更是一个框架，它主要整合了redux的相关内容，让我们处理数据更加容易，实际上，dva依赖了很多：react、react-router、redux、redux-saga、react-redux、conncted-react-router等
+
+![img](React-yuan.assets/2019-09-06-18-39-36.png)
+
+#### dva使用
+
+1. dva 默认导出一个函数，通过调用该函数，可以得到一个dva对象
+
+2. dva对象属性：
+
+   **router**
+
+   - 路由方法，**传入一个函数**，该函数返回一个React节点，将来，应用程序启动后，会自动渲染该节点
+     - 函数参数：`{history: {……}， app: {……}}`
+
+   **start**
+
+   - 该方法用于启动dva应用程序，可以认为启动的就是react程序，
+   - 给该函数传入一个选择器，用于选中页面中的某个dom元素，react会将内容渲染到该元素内部
+
+   **model**
+
+   该方法用于定义一个模型，该模型可以理解为redux的action、reducer、redux-saga副作用处理的整合，整合成一个对象，将该对象传入model方法即可
+
+   - `namespace`：命名空间，该属性是一个字符串，字符串的值，会被作为仓库中的属性保存
+
+   - `state`：该模型的默认状态
+
+   - `reducers`：该属性配置为一个对象，对象中的每个方法是一个reducer
+
+     dva约定，**方法的名字，就是匹配的action类型**
+
+   - `effects`：处理副作用，底层是使用redux-saga实现的，该属性配置为一个对象，对象中的每个方法均处理一个副作用，**方法的名字，就是匹配的action类型**
+
+     - 函式的参数1：action
+     - 参数2：封装好的saga/effects对象
+
+   - `subscriptions`：配置为一个对象，该对象中可以写任意数量、任意名称的属性，每个属性是一个函数，**这些函数会在模型加入到仓库中后立即运行**
+
+     - 函数参数1：`{history: {……}, dispatch: {……}}`
+     - 参数2：onError函数
+
+3. 在dva中同步路由到仓库
+
+   1. 在调用dva函数时，配置history对象
+   2. 使用ConnectedRouter提供路由上下文
+
+4. `const app = dva(options);`中options：
+
+   - `history`：同步到仓库的history对象
+   - `initialState`：创建redux仓库时，使用默认状态
+   - `onError`：当仓库运行发生错误的时，运行的函数
+   - `onAction`：可以配置redux中间件
+     - 传入一个中间件对象
+     - 传入一个中间件数组
+   - `onStateChange`：当仓库中的状态发生变化时运行的函数
+   - `onReducer`：对模型中的reducer的进一步封装
+   - `onEffect`：类似于对模型中的effect的进一步封装
+   - `extraReducers`：用于配置额外的reducer，它是一个对象，对象中的每一个属性是一个方法，每个方法就是一个需要合并的reducer，方法名即属性名
+   - `extraEnhancers`：它用于封装createStore函数的，dva会将原来的仓库创建函数作为参数传递，返回一个新的用于创建仓库的函数，函数必须放置到数组中
+
+```react
+import React from "react";
+import App from "./App";
+import dva from "dva";
+import counter from "./models/counter";
+import students from "./models/students";
+
+// 得到一个dva对象
+// const app = dva();
+
+// 得到一个dva对象
+const app = dva({
+    history: createBrowserHistory(),
+    initialState: {
+        counter: 123
+    },
+    onError(err, dispatch) {
+        console.log(err.message, dispatch);
+    },
+    onAction: logger,
+    onStateChange(state) {
+        console.log(state.counter);
+    },
+    onReducer(reducer) {
+        return function (state, action) {
+            console.log("reducer即将被执行")
+            const newState = reducer(state, action);
+            console.log("reducer执行结束")
+            return newState;
+        }
+    },
+    onEffect(oldEffect, sagaEffects, model, actionType) {
+        return function* (action) {
+            console.log("即将执行副作用代码")
+            yield oldEffect(action);
+            console.log("副作用代码执行完毕")
+        }
+    },
+    extraReducers: {
+        abc(state = 123, action) {
+            return state;
+        },
+        bcd(state = 456, action) {
+            return state;
+        }
+    },
+    extraEnhancers: [function (createStore) {
+        return function (...args) {
+            console.log("即将创建仓库1")
+            return createStore(...args);
+        }
+    }, function (createStore) {
+        return function (...args) {
+            console.log("即将创建仓库2")
+            return createStore(...args);
+        }
+    }]
+});
+
+//在启动之前定义模型
+app.model(counter);
+app.model(students);
+
+//设置根路由，即启动后，要运行的函数，函数的返回结果会被渲染
+app.router(() => <App />);
+
+app.start("#root");
+```
+
 ### dva插件
+
+通过`dva对象.use(插件)`来使用插件，插件本质上就是一个对象，该对象与配置对象相同，dva在启动时，将传递的插件对象混合到配置中
+
+**dva-loading**
+
+该插件会在仓库中加入一个状态，名称为loading，它是一个对象，其中有以下属性
+
+- `global`：全局是否正在处理副作用（加载），只要有任何一个模型在处理副作用，则该属性为true
+- `models`：一个对象，对象中的属性名以及属性的值，表示哪个对应的模型是否在处理副作用中（加载中）
+- `effects`：一个对象，对象中的属性名以及属性的值，表示是哪个action触发了副作用
 
 ## umijs
 
