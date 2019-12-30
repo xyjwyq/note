@@ -3651,7 +3651,131 @@ dva插件和umi整合后，将模型分为两种
 
 #### 定义全局模型
 
+在`src/models`目录下定义的js文件都会被看作全局模型，默认情况下，模型的命名空间和文件名是一致的
 
+#### 定义局部模型
+
+局部模型的定义在pages文件夹或其子文件夹中，在哪个文件夹定义的模型，会被该文件夹的所有页面以及子页面、以及该文件夹的祖先文件夹中的页面所共享。
+
+局部模型的定义和全局模型的约定类似，需要创建一个models文件夹 
+
+#### 细节
+
+1. 使用umi开发时，全局模型全量载入，局部模型在生产模式时按需载入，在开发模式时全局载入
+2. 约定 model.js 为单文件 model，解决只有一个 model 时不需要建 models 目录的问题，有 model.js 则不去找 `models/**/*.js`
+
+### 使用样式
+
+解决两个问题：
+
+1. 保证类样式名称的唯一性：css-module
+2. 样式代码的重复：less/scss
+
+#### 局部样式与全局样式
+
+1. 底层使用webpack的加载器：css-loader（内部包含了css-module功能）
+2. css文件 --> css-module --> 对象：
+   1. 某个组件特有的样式，不与其他组件共享，通常，将该样式文件与组件放置在同一个目录下（非强制）（要保证类样式名称唯一）
+   2. 如果某些样式可以被某些组件共享，这样的样式，通常放到assets/css文件夹中（要保证类样式名称唯一）
+   3. 全局样式，名称一定唯一，不需要css-module处理，umijs约定，src/global.css样式，是全局样式，不会交给css-module处理
+3. less代码 --> less-loader --> css代码 --> css-module --> 对象
+
+```react
+import styles from './index.css'
+// 加载多个样式
+<div className={`${styles.container} ${style['text-color']}`} ></div>
+```
+
+### 代理和数据模拟
+
+#### 代理
+
+在`.umirc.js`中配置proxy属性，完成代理设置
+
+```react
+proxy: { //相当于webpack中的devServer中的proxy配置
+  "/api": {
+       target: "http://api.duyiedu.com",
+        changeOrigin: true //修改源
+    }
+ }
+```
+
+#### 数据模拟
+
+使用mockjs模拟请求以及进行数据模拟
+
+[umi中进行mock](https://umijs.org/zh/guide/mock-data.html#使用-umi-的-mock-功能)
+
+```js
+import Mock from "mockjs"
+var result = Mock.mock({
+    msg: "查询成功",
+    status: "success",
+    "data|100": [{
+        name: "@cname",
+        address: "@city",
+        appkey: /demo\d{2}_\d{10}/,
+        "birth|1980-2000": 0,
+        "ctime|1554049417-1564049417": 0,
+        email: "@email",
+        "id|+1": 1,
+        phone: /1\d{10}/,
+        sNo: /\d{5}/,
+        "sex|1": [0, 1],
+        "utime|1554049417-1564049417": 0
+    }]
+})
+
+
+//导出的是数据模拟的配置
+//该文件会被umijs读取
+export default {
+    "GET /api/student/findAll": {
+        msg: "查询成功",
+        status: "success",
+        data: result
+    }
+}
+```
+
+### umi配置
+
+### 额外的约定文件
+
+- `src/pages/document.ejs`：页面模板文件
+- `src/global.js`：在umi最开始启动时运行的js文件
+- `src/app.js`：运行时配置的代码
+  - `pathRoutes`：函数，该函数会在umi读取完所有静态路由配置后执行
+  - `dva`
+    - `config`：相当于 `new dva配置`
+    - `plugins`：相当于 `dva.use(插件)`
+- `.env`：
+  - `UMI_ENV`：umi的环境变量值，可以是任意值，该值会影响到 umirc.js
+  - `PORT`
+  - `MOCK`
+
+#### umi配置
+
+书写在`.umirc`文件中的配置
+
+- `plugins`：配置umi的插件
+- `routes`：配置路由（会导致约定式路由失效）
+- `history`：history对象模式（默认是browser）
+- `outputPath`：使用umi build后，打包的目录名称，默认./dist
+- `base`：相当于之前BrowserRouter中的basename
+- `publicPath`：指定静态资源所在的目录
+- `exportStatic`：开启该配置后，会打包成多个静态页面，每个页面对应一个路由，开启多静态页面应用的前提条件是：没有动态路由
+
+### umi脚手架
+
+umi 通过 [create-umi](https://github.com/umijs/create-umi) 提供脚手架能力，包含：
+
+- **project**，通用项目脚手架，支持选择是否启用 TypeScript，以及 [umi-plugin-react](https://umijs.org/zh/plugin/umi-plugin-react.html) 包含的功能
+- **ant-design-pro**，仅包含 [ant-design-pro](https://github.com/ant-design/ant-design-pro) 布局的脚手架，具体页面可通过 [umi block](https://umijs.org/zh/guide/block.html) 添加
+- **block**，区块脚手架
+- **plugin**，插件脚手架
+- **library**，依赖（组件）库脚手架，基于 [umi-plugin-library](https://github.com/umijs/umi-plugin-library)
 
 ## antDesign
 
