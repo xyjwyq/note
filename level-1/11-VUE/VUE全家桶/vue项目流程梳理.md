@@ -1,6 +1,6 @@
 1. vue项目目录结构
 
-   ![](vue%E9%A1%B9%E7%9B%AE%E6%B5%81%E7%A8%8B%E6%A2%B3%E7%90%86.assets/vue.dist.svg)
+   ![vue项目模目录结构](vue%E9%A1%B9%E7%9B%AE%E6%B5%81%E7%A8%8B%E6%A2%B3%E7%90%86.assets/vue.dist.svg)
 
 2. 项目构建到发布流程
 
